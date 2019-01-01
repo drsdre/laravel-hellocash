@@ -1,0 +1,59 @@
+{
+    "name": "drsdre/laravel-hellocash",
+    "description": "A Laravel package for integrating the HelloCash gateway",
+    "type": "library",
+    "keywords": [
+        "checkout",
+        "ecommerce",
+        "gateway",
+        "laravel",
+        "pay",
+        "payment",
+        "HelloCash",
+        "webhooks"
+    ],
+    "homepage": "https://github.com/drsdre/laravel-hellocash",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Andre Schuurman",
+            "email": "laravel-hellocash@drsdre.org",
+            "homepage": "https://github.com/drsdre",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": ">=7.0",
+        "guzzlehttp/guzzle": "~6.0",
+        "illuminate/config": "5.5.*|5.6.*|5.7.*",
+        "illuminate/routing": "5.5.*|5.6.*|5.7.*",
+        "illuminate/support": "5.5.*|5.6.*|5.7.*"
+    },
+    "require-dev": {
+        "orchestra/testbench": "3.5.*|3.6.*|3.7.*",
+        "phpunit/phpunit": "6.*|7.*"
+    },
+    "autoload": {
+        "psr-4": {
+            "drsdre\\HelloCash\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "drsdre\\HelloCash\\Test\\": "tests"
+        }
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit --colors=always"
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "drsdre\\HelloCash\\HelloCashServiceProvider"
+            ]
+        }
+    }
+}
