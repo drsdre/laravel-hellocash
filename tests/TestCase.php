@@ -10,6 +10,7 @@ use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\Response;
+use Illuminate\Foundation\Application;
 use Psr\Http\Message\RequestInterface;
 
 abstract class TestCase extends \Orchestra\Testbench\TestCase
@@ -17,14 +18,14 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
     /**
      * Guzzle client
      *
-     * @var \GuzzleHttp\Client
+     * @var GuzzleClient
      */
     protected $client;
 
     /**
      * Handler stack
      *
-     * @var \GuzzleHttp\HandlerStack
+     * @var HandlerStack
      */
     protected $handler;
 
@@ -50,7 +51,7 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
     /**
      * Define environment setup.
      *
-     * @param  \Illuminate\Foundation\Application  $app
+     * @param  Application  $app
      * @return void
      */
     protected function getEnvironmentSetUp($app)
@@ -74,7 +75,7 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
     /**
      * Mock responses.
      *
-     * @param \GuzzleHttp\Psr7\Response[] $responses
+     * @param Response[] $responses
      * @return void
      */
     protected function mockResponses(array $responses)
