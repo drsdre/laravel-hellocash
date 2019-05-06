@@ -53,7 +53,7 @@ abstract class WebhookController extends Controller
     /**
      * Handle any other type of event notification.
      *
-     * @param  \Illuminate\Http\Request $request
+     * @param Request $request
      * @return mixed
      */
     abstract protected function handleEventNotification(Request $request);

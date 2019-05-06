@@ -2,6 +2,8 @@
 
 namespace drsdre\HelloCash\Requests;
 
+use drsdre\HelloCash\HelloCashClient;
+
 class Connection
 {
     const ENDPOINT = '/connections/';
@@ -17,14 +19,14 @@ class Connection
     const REFUND_TRANSACTION = 1797;
 
     /**
-     * @var \drsdre\HelloCash\HelloCashClient
+     * @var HelloCashClient
      */
     protected $client;
 
     /**
      * Constructor.
      *
-     * @param \drsdre\HelloCash\HelloCashClient $client
+     * @param HelloCashClient $client
      */
     public function __construct(Client $client)
     {

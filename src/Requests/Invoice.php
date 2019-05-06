@@ -2,7 +2,9 @@
 
 namespace drsdre\HelloCash\Requests;
 
+use DateTime;
 use drsdre\HelloCash\HelloCashClient;
+use GuzzleHttp\RequestOptions;
 
 class Invoice {
 
@@ -28,14 +30,14 @@ class Invoice {
 	const CURRENCY = 'ETB';
 
 	/**
-	 * @var \drsdre\HelloCash\HelloCashClient
+	 * @var HelloCashClient
 	 */
 	protected $client;
 
 	/**
 	 * Constructor.
 	 *
-	 * @param \drsdre\HelloCash\HelloCashClient $client
+	 * @param HelloCashClient $client
 	 */
 	public function __construct( HelloCashClient $client ) {
 		$this->client = $client;
@@ -48,7 +50,7 @@ class Invoice {
 	 * @param string $description
 	 * @param string $from_hellocash_account
 	 * @param string $tracenumber
-	 * @param \DateTime $expiration_dt
+	 * @param DateTime $expiration_dt
 	 * @param bool $notify_from
 	 * @param bool $notify_to
 	 * @param array $parameters optional parameters (Full list available here:
@@ -61,20 +63,20 @@ class Invoice {
 		string $description,
 		string $from_hellocash_account,
 		string $tracenumber,
-		\DateTime $expiration_dt,
+		DateTime $expiration_dt,
 		bool $notify_from = true,
 		bool $notify_to = true,
 		array $parameters = []
 	) {
 		$response = $this->client->post( self::ENDPOINT . 'validate', [
-				\GuzzleHttp\RequestOptions::JSON => array_merge(
+				RequestOptions::JSON => array_merge(
 					[
 						'amount'      => $amount, // Make sure this become numeric
 						'description' => $description,
 						'from'        => $from_hellocash_account,// Make sure this does not become numeric
 						'currency'    => self::CURRENCY,
 						'tracenumber' => $tracenumber,
-						'expires'     => $expiration_dt->format( \DateTime::RFC3339 ),
+						'expires'     => $expiration_dt->format( DateTime::RFC3339 ),
 						'notifyfrom'  => $notify_from,
 						'notifyto'    => $notify_to,
 					],
@@ -93,7 +95,7 @@ class Invoice {
 	 * @param string $description
 	 * @param string $from_hellocash_account
 	 * @param string $tracenumber
-	 * @param \DateTime $expiration_dt
+	 * @param DateTime $expiration_dt
 	 * @param bool $notify_from
 	 * @param bool $notify_to
 	 * @param array $parameters optional parameters (Full list available here:
@@ -106,20 +108,20 @@ class Invoice {
 		string $description,
 		string $from_hellocash_account,
 		string $tracenumber,
-		\DateTime $expiration_dt,
+		DateTime $expiration_dt,
 		bool $notify_from = true,
 		bool $notify_to = true,
 		array $parameters = []
 	) {
 		$response = $this->client->post( self::ENDPOINT, [
-				\GuzzleHttp\RequestOptions::JSON => array_merge(
+				RequestOptions::JSON => array_merge(
 					[
 						'amount'      => $amount, // Make sure this become numeric
 						'description' => $description,
 						'from'        => $from_hellocash_account,// Make sure this does not become numeric
 						'currency'    => self::CURRENCY,
 						'tracenumber' => $tracenumber,
-						'expires'     => $expiration_dt->format( \DateTime::RFC3339 ),
+						'expires'     => $expiration_dt->format( DateTime::RFC3339 ),
 						'notifyfrom'  => $notify_from,
 						'notifyto'    => $notify_to,
 					],
@@ -151,7 +153,7 @@ class Invoice {
 	 */
 	public function list( array $query_params ) {
 		return $this->client->get( self::ENDPOINT, [
-				\GuzzleHttp\RequestOptions::QUERY => $query_params,
+				RequestOptions::QUERY => $query_params,
 			]
 		);
 	}

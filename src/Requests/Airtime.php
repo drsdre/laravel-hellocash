@@ -2,19 +2,22 @@
 
 namespace drsdre\HelloCash\Requests;
 
+use DateTime;
+use drsdre\HelloCash\HelloCashClient;
+
 class Airtime {
 
 	const ENDPOINT = '/airtime/';
 
 	/**
-	 * @var \drsdre\HelloCash\HelloCashClient
+	 * @var HelloCashClient
 	 */
 	protected $client;
 
 	/**
 	 * Constructor.
 	 *
-	 * @param \drsdre\HelloCash\HelloCashClient $client
+	 * @param HelloCashClient $client
 	 */
 	public function __construct( Client $client ) {
 		$this->client = $client;
@@ -84,7 +87,7 @@ class Airtime {
 		bool $validate_only = false,
 		array $parameters = []
 	) {
-		$ExpireDatetime = \DateTime::createFromFormat( "Y-m-d H:i", $expiration_date );
+		$ExpireDatetime = DateTime::createFromFormat( "Y-m-d H:i", $expiration_date );
 
 		$response = $this->client->post( self::ENDPOINT . ( $validate_only ? 'validate' : '' ), [
 			'json' => array_merge(
@@ -94,7 +97,7 @@ class Airtime {
 					'from'        => $from_hellocash_account,// Make sure this does not become numeric
 					'currency'    => 'ETB',
 					'tracenumber' => $tracenumber,
-					'expires'     => $ExpireDatetime->format( \DateTime::RFC3339 ),
+					'expires'     => $ExpireDatetime->format( DateTime::RFC3339 ),
 					'notifyfrom'  => $notify_from,
 					'notifyto'    => $notify_to,
 				],

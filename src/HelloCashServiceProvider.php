@@ -4,6 +4,8 @@ namespace drsdre\HelloCash;
 
 use drsdre\HelloCash\Exceptions\HelloCashException;
 use GuzzleHttp\Client as GuzzleClient;
+use GuzzleHttp\RequestOptions;
+use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\ServiceProvider;
 
 class HelloCashServiceProvider extends ServiceProvider {
@@ -45,7 +47,7 @@ class HelloCashServiceProvider extends ServiceProvider {
 	/**
 	 * Build the Guzzlehttp client.
 	 *
-	 * @param  \Illuminate\Contracts\Foundation\Application $app
+	 * @param  Application $app
 	 **
 	 * @return GuzzleClient
 	 * @throws HelloCashException
@@ -106,7 +108,7 @@ class HelloCashServiceProvider extends ServiceProvider {
 		] );
 
 		$response = $client->post( '/authenticate', [
-			\GuzzleHttp\RequestOptions::JSON => [
+			RequestOptions::JSON => [
 				'principal'   => $config['principal'],
 				'credentials' => $config['credentials'],
 				'system'      => $config['system'],

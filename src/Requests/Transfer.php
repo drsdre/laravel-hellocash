@@ -2,6 +2,10 @@
 
 namespace drsdre\HelloCash\Requests;
 
+use DateTimeInterface;
+use drsdre\HelloCash\HelloCashClient;
+use GuzzleHttp\RequestOptions;
+
 class Transfer
 {
     const ENDPOINT = '/transfer/';
@@ -24,14 +28,14 @@ class Transfer
 	const STATUS_REPLACED = 'REPLACED';
 
     /**
-     * @var \drsdre\HelloCash\HelloCashClient
+     * @var HelloCashClient
      */
     protected $client;
 
     /**
      * Constructor.
      *
-     * @param \drsdre\HelloCash\HelloCashClient $client
+     * @param HelloCashClient $client
      */
     public function __construct(Client $client)
     {
@@ -47,8 +51,8 @@ class Transfer
     public function create(array $parameters)
     {
         return $this->client->post(self::ENDPOINT, [
-            \GuzzleHttp\RequestOptions::FORM_PARAMS => $parameters,
-            \GuzzleHttp\RequestOptions::QUERY => [
+            RequestOptions::FORM_PARAMS => $parameters,
+            RequestOptions::QUERY => [
                 'key' => $this->getKey(),
             ],
         ]);
@@ -70,12 +74,12 @@ class Transfer
     /**
      * Format a date object to string.
      *
-     * @param  \DateTimeInterface|string $date
+     * @param  DateTimeInterface|string $date
      * @return string
      */
     protected function formatDate($date) : string
     {
-        if ($date instanceof \DateTimeInterface) {
+        if ($date instanceof DateTimeInterface) {
             return $date->format('Y-m-d');
         }
 
@@ -107,7 +111,7 @@ class Transfer
         $actionUser = $actionUser ? ['ActionUser' => $actionUser] : [];
 
         return $this->client->delete(self::ENDPOINT.$id, [
-            \GuzzleHttp\RequestOptions::QUERY => array_merge($query, $actionUser),
+            RequestOptions::QUERY => array_merge($query, $actionUser),
         ]);
     }
 

@@ -2,6 +2,7 @@
 
 namespace drsdre\HelloCash\Requests;
 
+use drsdre\HelloCash\HelloCashClient;
 use Illuminate\Support\Carbon;
 
 class Account
@@ -9,14 +10,14 @@ class Account
     const ENDPOINT = '/accounts/';
 
     /**
-     * @var \drsdre\HelloCash\HelloCashClient
+     * @var HelloCashClient
      */
     protected $client;
 
     /**
      * Constructor.
      *
-     * @param \drsdre\HelloCash\HelloCashClient $client
+     * @param HelloCashClient $client
      */
     public function __construct(Client $client)
     {

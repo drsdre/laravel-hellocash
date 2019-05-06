@@ -14,14 +14,15 @@ class HelloCashClient
     const PRODUCTION_URL = 'https://api-et.hellocash.net';
 
     /**
-     * @var \GuzzleHttp\Client
+     * @var GuzzleClient
      */
     protected $client;
 
     /**
      * Constructor.
      *
-     * @param  \GuzzleHttp\Client   $client
+     * @param GuzzleClient $client
+     *
      * @return void
      */
     public function __construct(GuzzleClient $client)
@@ -88,10 +89,10 @@ class HelloCashClient
     /**
      * Get the response body.
      *
-     * @param  \Psr\Http\Message\ResponseInterface $response
+     * @param ResponseInterface $response
      * @return object
      *
-     * @throws \drsdre\HelloCash\HelloCashException
+     * @throws HelloCashException
      */
     protected function getBody(ResponseInterface $response)
     {
@@ -107,7 +108,7 @@ class HelloCashClient
     /**
      * Get the URL.
      *
-     * @return \Psr\Http\Message\UriInterface
+     * @return UriInterface
      */
     public function getUrl() : UriInterface
     {
@@ -117,7 +118,7 @@ class HelloCashClient
     /**
      * Get the Guzzle client.
      *
-     * @return \GuzzleHttp\Client
+     * @return GuzzleClient
      */
     public function getClient()
     {
