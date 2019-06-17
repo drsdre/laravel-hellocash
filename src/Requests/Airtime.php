@@ -36,6 +36,9 @@ class Airtime {
 	 * @param bool $descending
 	 *
 	 * @return object
+	 *
+	 * @throws \GuzzleHttp\Exception\GuzzleException
+	 * @throws \drsdre\HelloCash\Exceptions\HelloCashException
 	 */
 	public function get(
 		int $offset,
@@ -48,16 +51,14 @@ class Airtime {
 		bool $descending
 	) {
 		return $this->client->request( 'GET', self::ENDPOINT, [
-			'query' => [
-				'offset'       => $offset,
-				'limit'        => $limit,
-				'status'       => $status,
-				'statusdetail' => $statusdetail,
-				'tracenumber'  => $tracenumber,
-				'startdate'    => $startdate,
-				'enddate'      => $enddate,
-				'descending'   => $descending,
-			],
+			'offset'       => $offset,
+			'limit'        => $limit,
+			'status'       => $status,
+			'statusdetail' => $statusdetail,
+			'tracenumber'  => $tracenumber,
+			'startdate'    => $startdate,
+			'enddate'      => $enddate,
+			'descending'   => $descending,
 		] );
 	}
 
@@ -75,6 +76,9 @@ class Airtime {
 	 * @param array $parameters
 	 *
 	 * @return object
+	 *
+	 * @throws \GuzzleHttp\Exception\GuzzleException
+	 * @throws \drsdre\HelloCash\Exceptions\HelloCashException
 	 */
 	public function create(
 		int $amount,
@@ -89,8 +93,8 @@ class Airtime {
 	) {
 		$ExpireDatetime = DateTime::createFromFormat( "Y-m-d H:i", $expiration_date );
 
-		$response = $this->client->post( self::ENDPOINT . ( $validate_only ? 'validate' : '' ), [
-			'json' => array_merge(
+		$response = $this->client->post( self::ENDPOINT . ( $validate_only ? 'validate' : '' ),
+			array_merge(
 				[
 					'amount'      => $amount, // Make sure this become numeric
 					'description' => $description,
@@ -102,8 +106,8 @@ class Airtime {
 					'notifyto'    => $notify_to,
 				],
 				$parameters
-			),
-		] );
+			)
+		);
 
 		return $response;
 	}
@@ -112,6 +116,9 @@ class Airtime {
 	 * List available airtime topup amounts
 	 *
 	 * @return object
+	 *
+	 * @throws \GuzzleHttp\Exception\GuzzleException
+	 * @throws \drsdre\HelloCash\Exceptions\HelloCashException
 	 */
 	public function available() {
 		return $this->client->get( self::ENDPOINT . 'available' );

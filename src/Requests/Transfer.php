@@ -46,23 +46,32 @@ class Transfer
      * Create a new transaction.
      *
      * @param  array   $parameters
+     *
      * @return object
+     *
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws \drsdre\HelloCash\Exceptions\HelloCashException
      */
     public function create(array $parameters)
     {
-        return $this->client->post(self::ENDPOINT, [
-            RequestOptions::FORM_PARAMS => $parameters,
-            RequestOptions::QUERY => [
-                'key' => $this->getKey(),
-            ],
-        ]);
+        return $this->client->post(
+        	self::ENDPOINT,
+	        [
+		        'key' => $this->getKey(),
+	        ],
+	        $parameters
+        );
     }
 
     /**
      * Get the transactions for an id.
      *
      * @param  string $id
+     *
      * @return array
+     *
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws \drsdre\HelloCash\Exceptions\HelloCashException
      */
     public function get(string $id) : array
     {
@@ -104,15 +113,17 @@ class Transfer
      * @param  int          $amount
      * @param  string|null  $actionUser
      * @return object
+     *
+     * @return object
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws \drsdre\HelloCash\Exceptions\HelloCashException
      */
     public function cancel(string $id, int $amount, $actionUser = null)
     {
         $query = ['Amount' => $amount];
         $actionUser = $actionUser ? ['ActionUser' => $actionUser] : [];
 
-        return $this->client->delete(self::ENDPOINT.$id, [
-            RequestOptions::QUERY => array_merge($query, $actionUser),
-        ]);
+        return $this->client->delete(self::ENDPOINT.$id, array_merge($query, $actionUser) );
     }
 
     /**

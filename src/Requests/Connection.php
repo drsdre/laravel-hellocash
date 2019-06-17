@@ -37,8 +37,11 @@ class Connection
      * Get a webhook authorization code.
      *
      * @return object
+     *
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws \drsdre\HelloCash\Exceptions\HelloCashException
      */
-    public function getAuthorizationCode()
+    final public function getAuthorizationCode(): object
     {
         return $this->client->get(self::ENDPOINT);
     }

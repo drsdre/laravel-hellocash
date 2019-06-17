@@ -57,6 +57,9 @@ class Invoice {
 	 *                          https://github.com/HelloCash/API/wiki/Optional-Parameters)
 	 *
 	 * @return object
+	 *
+	 * @throws \GuzzleHttp\Exception\GuzzleException
+	 * @throws \drsdre\HelloCash\Exceptions\HelloCashException
 	 */
 	public function validate(
 		int $amount,
@@ -67,22 +70,21 @@ class Invoice {
 		bool $notify_from = true,
 		bool $notify_to = true,
 		array $parameters = []
-	) {
-		$response = $this->client->post( self::ENDPOINT . 'validate', [
-				RequestOptions::JSON => array_merge(
-					[
-						'amount'      => $amount, // Make sure this become numeric
-						'description' => $description,
-						'from'        => $from_hellocash_account,// Make sure this does not become numeric
-						'currency'    => self::CURRENCY,
-						'tracenumber' => $tracenumber,
-						'expires'     => $expiration_dt->format( DateTime::RFC3339 ),
-						'notifyfrom'  => $notify_from,
-						'notifyto'    => $notify_to,
-					],
-					$parameters
-				),
-			]
+	): object {
+		$response = $this->client->post( self::ENDPOINT . 'validate',
+			array_merge(
+				[
+					'amount'      => $amount, // Make sure this become numeric
+					'description' => $description,
+					'from'        => $from_hellocash_account,// Make sure this does not become numeric
+					'currency'    => self::CURRENCY,
+					'tracenumber' => $tracenumber,
+					'expires'     => $expiration_dt->format( DateTime::RFC3339 ),
+					'notifyfrom'  => $notify_from,
+					'notifyto'    => $notify_to,
+				],
+				$parameters
+			)
 		);
 
 		return $response;
@@ -102,6 +104,9 @@ class Invoice {
 	 *                          https://github.com/HelloCash/API/wiki/Optional-Parameters)
 	 *
 	 * @return object
+	 *
+	 * @throws \GuzzleHttp\Exception\GuzzleException
+	 * @throws \drsdre\HelloCash\Exceptions\HelloCashException
 	 */
 	public function create(
 		int $amount,
@@ -112,23 +117,22 @@ class Invoice {
 		bool $notify_from = true,
 		bool $notify_to = true,
 		array $parameters = []
-	) {
-		$response = $this->client->post( self::ENDPOINT, [
-				RequestOptions::JSON => array_merge(
-					[
-						'amount'      => $amount, // Make sure this become numeric
-						'description' => $description,
-						'from'        => $from_hellocash_account,// Make sure this does not become numeric
-						'currency'    => self::CURRENCY,
-						'tracenumber' => $tracenumber,
-						'expires'     => $expiration_dt->format( DateTime::RFC3339 ),
-						'notifyfrom'  => $notify_from,
-						'notifyto'    => $notify_to,
-					],
-					$parameters
-				),
-			]
+	): object {
+		$parameters = array_merge(
+			[
+				'amount'      => $amount, // Make sure this become numeric
+				'description' => $description,
+				'from'        => $from_hellocash_account,// Make sure this does not become numeric
+				'currency'    => self::CURRENCY,
+				'tracenumber' => $tracenumber,
+				'expires'     => $expiration_dt->format( DateTime::RFC3339 ),
+				'notifyfrom'  => $notify_from,
+				'notifyto'    => $notify_to,
+			],
+			$parameters
 		);
+
+		$response = $this->client->post( self::ENDPOINT, $parameters );
 
 		return $response;
 	}
@@ -136,12 +140,15 @@ class Invoice {
 	/**
 	 * Retrieve information about an invoice.
 	 *
-	 * @param  int $invoiceCode The unique Invoice ID.
+	 * @param int $invoice_code The unique Invoice ID.
 	 *
 	 * @return object
+	 *
+	 * @throws \GuzzleHttp\Exception\GuzzleException
+	 * @throws \drsdre\HelloCash\Exceptions\HelloCashException
 	 */
-	public function get( $invoiceCode ) {
-		return $this->client->get( self::ENDPOINT . $invoiceCode );
+	public function get( int $invoice_code ): object {
+		return $this->client->get( self::ENDPOINT . $invoice_code );
 	}
 
 	/**
@@ -150,22 +157,25 @@ class Invoice {
 	 * @param array $query_params
 	 *
 	 * @return object
+	 *
+	 * @throws \GuzzleHttp\Exception\GuzzleException
+	 * @throws \drsdre\HelloCash\Exceptions\HelloCashException
 	 */
-	public function list( array $query_params ) {
-		return $this->client->get( self::ENDPOINT, [
-				RequestOptions::QUERY => $query_params,
-			]
-		);
+	public function list( array $query_params ): object {
+		return $this->client->get( self::ENDPOINT, $query_params );
 	}
 
 	/**
 	 * Remove an invoice.
 	 *
-	 * @param  int $invoiceCode The unique Invoice ID.
+	 * @param int $invoice_code The unique Invoice ID.
 	 *
 	 * @return object
+	 *
+	 * @throws \GuzzleHttp\Exception\GuzzleException
+	 * @throws \drsdre\HelloCash\Exceptions\HelloCashException
 	 */
-	public function remove( $invoiceCode ) {
-		return $this->client->delete( self::ENDPOINT . $invoiceCode );
+	public function remove( int $invoice_code ): object {
+		return $this->client->delete( self::ENDPOINT . $invoice_code );
 	}
 }

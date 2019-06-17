@@ -2,126 +2,212 @@
 
 namespace drsdre\HelloCash;
 
+use drsdre\HelloCash\Exceptions\HelloCashException;
 use GuzzleHttp\Client as GuzzleClient;
+use GuzzleHttp\RequestOptions;
+use Illuminate\Support\Facades\Cache;
 use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\UriInterface;
 
-class HelloCashClient
-{
-    /**
-     * Production environment URL.
-     */
-    const PRODUCTION_URL = 'https://api-et.hellocash.net';
+class HelloCashClient {
 
-    /**
-     * @var GuzzleClient
-     */
-    protected $client;
+	/**
+	 * Production environment URL.
+	 */
+	const PRODUCTION_URL = 'https://api-et.hellocash.net';
 
-    /**
-     * Constructor.
-     *
-     * @param GuzzleClient $client
-     *
-     * @return void
-     */
-    public function __construct(GuzzleClient $client)
-    {
-        $this->client = $client;
-    }
+	const TOKEN_CACHE_KEY = 'hellocash_token';
 
-    /**
-     * Make a GET request.
-     *
-     * @param  string $url
-     * @param  array  $options
-     * @return object
-     */
-    public function get(string $url, array $options = [])
-    {
-        $response = $this->client->get($url, $options);
+	const TOKEN_CACHE_HOURS = 23;
 
-        return $this->getBody($response);
-    }
+	/**
+	 * @var GuzzleClient
+	 */
+	protected $client;
 
-    /**
-     * Make a POST request.
-     *
-     * @param  string $url
-     * @param  array  $options
-     * @return object
-     */
-    public function post(string $url, array $options = [])
-    {
-        $response = $this->client->post($url, $options);
+	/**
+	 * Constructor.
+	 *
+	 * @param GuzzleClient $client
+	 *
+	 * @return void
+	 */
+	public function __construct() {
+		$this->client = new GuzzleClient( [
+			'base_uri' => $this->getUrl(),
+			'curl'     => $this->curlDoesntUseNss()
+				? [ CURLOPT_SSL_CIPHER_LIST => 'TLSv1' ]
+				: [],
+		] );
+	}
 
-        return $this->getBody($response);
-    }
+	/**
+	 * Get the URL based on the environment.
+	 *
+	 * @return string
+	 */
+	final public function getUrl(): string {
+		return self::PRODUCTION_URL;
+	}
 
-    /**
-     * Make a PATCH request.
-     *
-     * @param  string $url
-     * @param  array  $options
-     * @return object
-     */
-    public function patch(string $url, array $options = [])
-    {
-        $response = $this->client->patch($url, $options);
+	/**
+	 * Check if cURL doens't use NSS.
+	 *
+	 * @return bool
+	 */
+	final private function curlDoesntUseNss(): bool {
+		$curl = curl_version();
 
-        return $this->getBody($response);
-    }
+		return ! preg_match( '/NSS/', $curl['ssl_version'] );
+	}
 
-    /**
-     * Make a DELETE request.
-     *
-     * @param  string $url
-     * @param  array  $options
-     * @return object
-     */
-    public function delete(string $url, array $options = [])
-    {
-        $response = $this->client->delete($url, $options);
+	/**
+	 * Get the Guzzle client.
+	 *
+	 * @return GuzzleClient
+	 */
+	final public function getClient(): GuzzleClient {
+		return $this->client;
+	}
 
-        return $this->getBody($response);
-    }
+	/**
+	 * @return array
+	 * @throws HelloCashException
+	 */
+	final private function authenticateHeader(): array {
+		return [
+			'Authorization' => 'Bearer ' . $this->getBearerToken(),
+		];
+	}
 
-    /**
-     * Get the response body.
-     *
-     * @param ResponseInterface $response
-     * @return object
-     *
-     * @throws HelloCashException
-     */
-    protected function getBody(ResponseInterface $response)
-    {
-        $body = json_decode($response->getBody(), false, 512, JSON_BIGINT_AS_STRING);
+	/**
+	 * Get the response body.
+	 *
+	 * @param ResponseInterface $response
+	 *
+	 * @return object
+	 *
+	 * @throws HelloCashException
+	 */
+	final private function getBody( ResponseInterface $response ): object {
+		$body = json_decode( $response->getBody(), false, 512, JSON_BIGINT_AS_STRING );
 
-        if (isset($body->ErrorCode) && $body->ErrorCode !== 0) {
-            throw new HelloCashException($body->ErrorText, $body->ErrorCode);
-        }
+		if ( isset( $body->ErrorCode ) && $body->ErrorCode !== 0 ) {
+			throw new HelloCashException( $body->ErrorText, $body->ErrorCode );
+		}
 
-        return $body;
-    }
+		return $body;
+	}
 
-    /**
-     * Get the URL.
-     *
-     * @return UriInterface
-     */
-    public function getUrl() : UriInterface
-    {
-        return $this->client->getConfig('base_uri');
-    }
+	/**
+	 * Get the bearer authentication token
+	 *
+	 * @return string token
+	 * @throws HelloCashException
+	 */
+	final private function getBearerToken(): string {
+		if ( Cache::has( self::TOKEN_CACHE_KEY ) ) {
+			return Cache::get( self::TOKEN_CACHE_KEY );
+		}
 
-    /**
-     * Get the Guzzle client.
-     *
-     * @return GuzzleClient
-     */
-    public function getClient()
-    {
-        return $this->client;
-    }
+		$config = config( 'hellocash' );
+
+		$client = new GuzzleClient( [
+			'base_uri' => $this->getUrl(),
+			'curl'     => $this->curlDoesntUseNss()
+				? [ CURLOPT_SSL_CIPHER_LIST => 'TLSv1' ]
+				: [],
+		] );
+
+		$response = $client->post( '/authenticate', [
+			RequestOptions::JSON => [
+				'principal'   => $config['principal'],
+				'credentials' => $config['credentials'],
+				'system'      => $config['system'],
+			],
+		] );
+
+		$data = $this->getBody( $response );
+
+		// Cache token for 23 hours (according to HelloCash documentation
+		Cache::put( self::TOKEN_CACHE_KEY, $data->token, now()->addHours( self::TOKEN_CACHE_HOURS ) );
+
+		return $data->token;
+	}
+
+	/**
+	 * Make a GET request.
+	 *
+	 * @param string $url
+	 * @param array $query
+	 *
+	 * @return object
+	 * @throws HelloCashException
+	 * @throws \GuzzleHttp\Exception\GuzzleException
+	 */
+	final public function get( string $url, array $query = [] ): object {
+		$response = $this->client->request( 'GET', $url, [
+			RequestOptions::QUERY   => $query,
+			RequestOptions::HEADERS => $this->authenticateHeader(),
+		] );
+
+		return $this->getBody( $response );
+	}
+
+	/**
+	 * Make a POST request.
+	 *
+	 * @param string $url
+	 * @param array $options
+	 *
+	 * @return object
+	 * @throws HelloCashException
+	 * @throws \GuzzleHttp\Exception\GuzzleException
+	 */
+	final public function post( string $url, array $options = [] ): object {
+		$response = $this->client->request( 'POST', $url, [
+			RequestOptions::JSON    => $options,
+			RequestOptions::HEADERS => $this->authenticateHeader(),
+		] );
+
+		return $this->getBody( $response );
+	}
+
+	/**
+	 * Make a PATCH request.
+	 *
+	 * @param string $url
+	 * @param array $options
+	 *
+	 * @return object
+	 * @throws HelloCashException
+	 * @throws \GuzzleHttp\Exception\GuzzleException
+	 */
+	final public function put( string $url, array $query = [], array $options = [] ): object {
+		$response = $this->client->request( 'PUT', $url, [
+			RequestOptions::QUERY   => $query,
+			RequestOptions::JSON    => $options,
+			RequestOptions::HEADERS => $this->authenticateHeader(),
+		] );
+
+		return $this->getBody( $response );
+	}
+
+	/**
+	 * Make a DELETE request.
+	 *
+	 * @param string $url
+	 * @param array $query
+	 *
+	 * @return object
+	 * @throws HelloCashException
+	 * @throws \GuzzleHttp\Exception\GuzzleException
+	 */
+	final public function delete( string $url, array $query = [] ): object {
+		$response = $this->client->request( 'DELETE', $url, [
+			RequestOptions::QUERY   => $query,
+			RequestOptions::HEADERS => $this->authenticateHeader(),
+		] );
+
+		return $this->getBody( $response );
+	}
 }
