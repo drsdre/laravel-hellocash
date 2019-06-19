@@ -13,158 +13,148 @@ use GuzzleHttp\Psr7\Response;
 use Illuminate\Foundation\Application;
 use Psr\Http\Message\RequestInterface;
 
-abstract class TestCase extends \Orchestra\Testbench\TestCase
-{
-    /**
-     * Guzzle client
-     *
-     * @var GuzzleClient
-     */
-    protected $client;
+abstract class TestCase extends \Orchestra\Testbench\TestCase {
 
-    /**
-     * Handler stack
-     *
-     * @var HandlerStack
-     */
-    protected $handler;
+	/**
+	 * Guzzle client
+	 *
+	 * @var GuzzleClient
+	 */
+	protected $client;
 
-    /**
-     * History of requests
-     *
-     * @var array
-     */
-    protected $history = [];
+	/**
+	 * Handler stack
+	 *
+	 * @var HandlerStack
+	 */
+	protected $handler;
 
-    /**
-     * Responses
-     *
-     * @var array
-     */
-    protected $responses = [];
+	/**
+	 * History of requests
+	 *
+	 * @var array
+	 */
+	protected $history = [];
 
-    protected function getPackageProviders($app)
-    {
-        return [HelloCashServiceProvider::class];
-    }
+	/**
+	 * Responses
+	 *
+	 * @var array
+	 */
+	protected $responses = [];
 
-    /**
-     * Define environment setup.
-     *
-     * @param  Application  $app
-     * @return void
-     */
-    protected function getEnvironmentSetUp($app)
-    {
-        $app->useEnvironmentPath(__DIR__.'/..');
-        $app->make('Illuminate\Foundation\Bootstrap\LoadEnvironmentVariables')->bootstrap($app);
-    }
+	public function assertPath( string $path, RequestInterface $request ) {
+		$this->assertEquals( $path, $request->getUri()->getPath() );
 
-    protected function mockRequests()
-    {
-        $history = Middleware::history($this->history);
+		return $this;
+	}
 
-        $this->handler->push($history);
-    }
+	public function assertMethod( string $name, RequestInterface $request ) {
+		$this->assertEquals( $name, $request->getMethod(), "The request method should be [{$name}]." );
 
-    protected function getLastRequest() : RequestInterface
-    {
-        return $this->history[0]['request'];
-    }
+		return $this;
+	}
 
-    /**
-     * Mock responses.
-     *
-     * @param Response[] $responses
-     * @return void
-     */
-    protected function mockResponses(array $responses)
-    {
-        $mock = new MockHandler($responses);
-        $this->handler = HandlerStack::create($mock);
+	public function assertQuery( string $name, $value, RequestInterface $request ) {
+		$query = $request->getUri()->getQuery();
 
-        $this->makeClient();
-    }
+		parse_str( $query, $output );
 
-    /**
-     * Make a client instance from a Guzzle handler.
-     */
-    protected function makeClient()
-    {
-        $mockClient = new GuzzleClient([
-            'handler' => $this->handler,
-            'base_uri' => HelloCashClient::PRODUCTION_URL,
-            'curl' => [CURLOPT_SSL_CIPHER_LIST => 'TLSv1'],
-            'auth' => [
-                $this->app['config']['credentials'],
-                $this->app['config']['principal'],
-            ],
-        ]);
+		$this->assertArrayHasKey(
+			$name,
+			$output,
+			"Did not see expected query string parameter [{$name}] in [{$query}]."
+		);
 
-        $this->client = new HelloCashClient($mockClient);
-    }
+		$this->assertEquals(
+			$value,
+			$output[ $name ],
+			"Query string parameter [{$name}] had value [{$output[$name]}], but expected [{$value}]."
+		);
 
-    protected function mockJsonResponses(array $bodies)
-    {
-        $responses = array_map(function ($body) {
-            return new Response(200, [], json_encode($body));
-        }, $bodies);
+		return $this;
+	}
 
-        $this->mockResponses($responses);
-    }
+	public function assertBody( string $name, $value, RequestInterface $request ) {
+		parse_str( $request->getBody(), $body );
 
-    public function assertPath(string $path, RequestInterface $request)
-    {
-        $this->assertEquals($path, $request->getUri()->getPath());
+		$this->assertArrayHasKey( $name, $body );
 
-        return $this;
-    }
+		$this->assertSame( $value, $body[ $name ] );
 
-    public function assertMethod(string $name, RequestInterface $request)
-    {
-        $this->assertEquals($name, $request->getMethod(), "The request method should be [{$name}].");
+		return $this;
+	}
 
-        return $this;
-    }
+	public function assertHeader( string $name, $value, RequestInterface $request ) {
+		$this->assertTrue( $request->hasHeader( $name ), "The header [{$name}] should be passed as a header." );
 
-    public function assertQuery(string $name, $value, RequestInterface $request)
-    {
-        $query = $request->getUri()->getQuery();
+		$this->assertEquals( $value, $request->getHeader( $name )[0], "The header [{$name}] should be [{$value}]." );
 
-        parse_str($query, $output);
+		return $this;
+	}
 
-        $this->assertArrayHasKey(
-            $name,
-            $output,
-            "Did not see expected query string parameter [{$name}] in [{$query}]."
-         );
+	protected function getPackageProviders( $app ) {
+		return [ HelloCashServiceProvider::class ];
+	}
 
-        $this->assertEquals(
-            $value,
-            $output[$name],
-            "Query string parameter [{$name}] had value [{$output[$name]}], but expected [{$value}]."
-        );
+	/**
+	 * Define environment setup.
+	 *
+	 * @param Application $app
+	 *
+	 * @return void
+	 */
+	protected function getEnvironmentSetUp( $app ) {
+		$app->useEnvironmentPath( __DIR__ . '/..' );
+		$app->make( 'Illuminate\Foundation\Bootstrap\LoadEnvironmentVariables' )->bootstrap( $app );
+	}
 
-        return $this;
-    }
+	protected function mockRequests() {
+		$history = Middleware::history( $this->history );
 
-    public function assertBody(string $name, $value, RequestInterface $request)
-    {
-        parse_str($request->getBody(), $body);
+		$this->handler->push( $history );
+	}
 
-        $this->assertArrayHasKey($name, $body);
+	protected function getLastRequest(): RequestInterface {
+		return $this->history[0]['request'];
+	}
 
-        $this->assertSame($value, $body[$name]);
+	protected function mockJsonResponses( array $bodies ) {
+		$responses = array_map( function ( $body ) {
+			return new Response( 200, [], json_encode( $body ) );
+		}, $bodies );
 
-        return $this;
-    }
+		$this->mockResponses( $responses );
+	}
 
-    public function assertHeader(string $name, $value, RequestInterface $request)
-    {
-        $this->assertTrue($request->hasHeader($name), "The header [{$name}] should be passed as a header.");
+	/**
+	 * Mock responses.
+	 *
+	 * @param Response[] $responses
+	 *
+	 * @return void
+	 */
+	protected function mockResponses( array $responses ) {
+		$mock          = new MockHandler( $responses );
+		$this->handler = HandlerStack::create( $mock );
 
-        $this->assertEquals($value, $request->getHeader($name)[0], "The header [{$name}] should be [{$value}].");
+		$this->makeClient();
+	}
 
-        return $this;
-    }
+	/**
+	 * Make a client instance from a Guzzle handler.
+	 */
+	protected function makeClient() {
+		$mockClient = new GuzzleClient( [
+			'handler'  => $this->handler,
+			'base_uri' => HelloCashClient::PRODUCTION_URL,
+			'curl'     => [ CURLOPT_SSL_CIPHER_LIST => 'TLSv1' ],
+			'auth'     => [
+				$this->app['config']['credentials'],
+				$this->app['config']['principal'],
+			],
+		] );
+
+		$this->client = new HelloCashClient( $mockClient );
+	}
 }
