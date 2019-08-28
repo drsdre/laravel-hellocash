@@ -19,7 +19,7 @@ class Airtime {
 	 *
 	 * @param HelloCashClient $client
 	 */
-	public function __construct( Client $client ) {
+	public function __construct( HelloCashClient $client ) {
 		$this->client = $client;
 	}
 
@@ -35,7 +35,7 @@ class Airtime {
 	 * @param string $enddate
 	 * @param bool $descending
 	 *
-	 * @return object
+	 * @return object response
 	 *
 	 * @throws \GuzzleHttp\Exception\GuzzleException
 	 * @throws \drsdre\HelloCash\Exceptions\HelloCashException
@@ -75,7 +75,7 @@ class Airtime {
 	 * @param bool $validate_only
 	 * @param array $parameters
 	 *
-	 * @return object
+	 * @return object response
 	 *
 	 * @throws \GuzzleHttp\Exception\GuzzleException
 	 * @throws \drsdre\HelloCash\Exceptions\HelloCashException
@@ -90,10 +90,10 @@ class Airtime {
 		bool $notify_to = true,
 		bool $validate_only = false,
 		array $parameters = []
-	) {
+	): object {
 		$ExpireDatetime = DateTime::createFromFormat( "Y-m-d H:i", $expiration_date );
 
-		$response = $this->client->post( self::ENDPOINT . ( $validate_only ? 'validate' : '' ),
+		return $this->client->post( self::ENDPOINT . ( $validate_only ? 'validate' : '' ),
 			array_merge(
 				[
 					'amount'      => $amount, // Make sure this become numeric
@@ -108,19 +108,17 @@ class Airtime {
 				$parameters
 			)
 		);
-
-		return $response;
 	}
 
 	/**
 	 * List available airtime topup amounts
 	 *
-	 * @return object
+	 * @return object response
 	 *
 	 * @throws \GuzzleHttp\Exception\GuzzleException
 	 * @throws \drsdre\HelloCash\Exceptions\HelloCashException
 	 */
-	public function available() {
+	final public function available(): object {
 		return $this->client->get( self::ENDPOINT . 'available' );
 	}
 
@@ -129,7 +127,7 @@ class Airtime {
 	 *
 	 * @return string
 	 */
-	protected function getSystem(): string {
+	final protected function getSystem(): string {
 		return config( 'service.hellocash.system' );
 	}
 }

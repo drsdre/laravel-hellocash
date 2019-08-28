@@ -2,7 +2,6 @@
 
 namespace drsdre\HelloCash\Test;
 
-use drsdre\HelloCash\Account;
 use drsdre\HelloCash\HelloCashClient;
 use drsdre\HelloCash\HelloCashServiceProvider;
 use GuzzleHttp\Client as GuzzleClient;

@@ -21,7 +21,7 @@ class InvoiceTest extends TestCase
             'AllowRecurring' => true,
         ]);
 
-        $this->assertInternalType('integer', $orderCode);
+        $this->assertIsInt($orderCode);
 
         return $orderCode;
     }

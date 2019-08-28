@@ -56,12 +56,12 @@ class Invoice {
 	 * @param array $parameters optional parameters (Full list available here:
 	 *                          https://github.com/HelloCash/API/wiki/Optional-Parameters)
 	 *
-	 * @return object
+	 * @return object response
 	 *
 	 * @throws \GuzzleHttp\Exception\GuzzleException
 	 * @throws \drsdre\HelloCash\Exceptions\HelloCashException
 	 */
-	public function validate(
+	final public function validate(
 		int $amount,
 		string $description,
 		string $from_hellocash_account,
@@ -71,7 +71,7 @@ class Invoice {
 		bool $notify_to = true,
 		array $parameters = []
 	): object {
-		$response = $this->client->post( self::ENDPOINT . 'validate',
+		return $this->client->post( self::ENDPOINT . 'validate',
 			array_merge(
 				[
 					'amount'      => $amount, // Make sure this become numeric
@@ -86,8 +86,6 @@ class Invoice {
 				$parameters
 			)
 		);
-
-		return $response;
 	}
 
 	/**
@@ -103,12 +101,12 @@ class Invoice {
 	 * @param array $parameters optional parameters (Full list available here:
 	 *                          https://github.com/HelloCash/API/wiki/Optional-Parameters)
 	 *
-	 * @return object
+	 * @return object response
 	 *
 	 * @throws \GuzzleHttp\Exception\GuzzleException
 	 * @throws \drsdre\HelloCash\Exceptions\HelloCashException
 	 */
-	public function create(
+	final public function create(
 		int $amount,
 		string $description,
 		string $from_hellocash_account,
@@ -132,36 +130,34 @@ class Invoice {
 			$parameters
 		);
 
-		$response = $this->client->post( self::ENDPOINT, $parameters );
-
-		return $response;
+		return $this->client->post( self::ENDPOINT, $parameters );
 	}
 
 	/**
 	 * Retrieve information about an invoice.
 	 *
-	 * @param int $invoice_code The unique Invoice ID.
+	 * @param int $invoice_id The unique Invoice ID.
 	 *
-	 * @return object
+	 * @return object response
 	 *
 	 * @throws \GuzzleHttp\Exception\GuzzleException
 	 * @throws \drsdre\HelloCash\Exceptions\HelloCashException
 	 */
-	public function get( int $invoice_code ): object {
-		return $this->client->get( self::ENDPOINT . $invoice_code );
+	final public function get( int $invoice_id ): object {
+		return $this->client->get( self::ENDPOINT . $invoice_id );
 	}
 
 	/**
 	 * List invoices
 	 *
-	 * @param array $query_params
+	 * @param array $query_params (keys: offset, limit, status, statusdetail, tracenumber, startdate, enddate, descending, from)
 	 *
-	 * @return object
+	 * @return object response
 	 *
 	 * @throws \GuzzleHttp\Exception\GuzzleException
 	 * @throws \drsdre\HelloCash\Exceptions\HelloCashException
 	 */
-	public function list( array $query_params ): object {
+	final public function search( array $query_params ): object {
 		return $this->client->get( self::ENDPOINT, $query_params );
 	}
 
@@ -170,12 +166,12 @@ class Invoice {
 	 *
 	 * @param int $invoice_code The unique Invoice ID.
 	 *
-	 * @return object
+	 * @return object response
 	 *
 	 * @throws \GuzzleHttp\Exception\GuzzleException
 	 * @throws \drsdre\HelloCash\Exceptions\HelloCashException
 	 */
-	public function remove( int $invoice_code ): object {
+	final public function remove( int $invoice_code ): object {
 		return $this->client->delete( self::ENDPOINT . $invoice_code );
 	}
 }

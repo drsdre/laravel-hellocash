@@ -25,9 +25,22 @@ class HelloCashClient {
 	protected $client;
 
 	/**
+	 * @var object
+	 */
+	protected $response;
+
+	/**
+	 * @var int
+	 */
+	protected $token_retries = 0;
+
+	/**
+	 * @var object
+	 */
+	public $response_body;
+
+	/**
 	 * Constructor.
-	 *
-	 * @param GuzzleClient $client
 	 *
 	 * @return void
 	 */
@@ -72,6 +85,7 @@ class HelloCashClient {
 	/**
 	 * @return array
 	 * @throws HelloCashException
+	 * @throws \Psr\SimpleCache\InvalidArgumentException
 	 */
 	final private function authenticateHeader(): array {
 		return [
@@ -80,22 +94,42 @@ class HelloCashClient {
 	}
 
 	/**
-	 * Get the response body.
+	 * Load response into class
 	 *
 	 * @param ResponseInterface $response
+	 */
+	final private function loadResponse( ResponseInterface $response ): void {
+		$this->response = $response;
+		$this->response_body = json_decode( $response->getBody(), false, 512, JSON_BIGINT_AS_STRING );
+	}
+
+	/**
+	 * Test if response has error and throws HelloCashException if so
+	 * or if INVALID_TOKEN, reset token and retry.
 	 *
-	 * @return object
-	 *
+	 * @return bool
 	 * @throws HelloCashException
 	 */
-	final private function getBody( ResponseInterface $response ): object {
-		$body = json_decode( $response->getBody(), false, 512, JSON_BIGINT_AS_STRING );
-
-		if ( isset( $body->ErrorCode ) && $body->ErrorCode !== 0 ) {
-			throw new HelloCashException( $body->ErrorText, $body->ErrorCode );
+	final private function testForErrorAndInvalidTokenRetry(): bool {
+		if ( isset( $this->response->ErrorCode ) && $this->response->ErrorCode !== 0 ) {
+			if (
+				isset( $this->response_body->error->message ) &&
+				$this->response_body->error->message == 'INVALID_TOKEN' &&
+				// Retry once
+				$this->token_retries == 0
+			) {
+				// Delete token
+				Cache::delete( self::TOKEN_CACHE_KEY );
+				$this->token_retries++;
+				// Retry
+				return true;
+			} else {
+				throw new HelloCashException( $this->response->ErrorText, $this->response->ErrorCode );
+			}
 		}
 
-		return $body;
+		// Don't retry
+		return false;
 	}
 
 	/**
@@ -118,20 +152,22 @@ class HelloCashClient {
 				: [],
 		] );
 
-		$response = $client->post( '/authenticate', [
-			RequestOptions::JSON => [
-				'principal'   => $config['principal'],
-				'credentials' => $config['credentials'],
-				'system'      => $config['system'],
-			],
-		] );
+		$this->loadResponse(
+			$client->post( '/authenticate', [
+				RequestOptions::JSON => [
+					'principal'   => $config['principal'],
+					'credentials' => $config['credentials'],
+					'system'      => $config['system'],
+				],
+			] )
+		);
 
-		$data = $this->getBody( $response );
+		$this->testForErrorAndInvalidTokenRetry();
 
 		// Cache token for 23 hours (according to HelloCash documentation
-		Cache::put( self::TOKEN_CACHE_KEY, $data->token, now()->addHours( self::TOKEN_CACHE_HOURS ) );
+		Cache::put( self::TOKEN_CACHE_KEY, $this->response_body->token, now()->addHours( self::TOKEN_CACHE_HOURS ) );
 
-		return $data->token;
+		return $this->response_body->token;
 	}
 
 	/**
@@ -140,17 +176,21 @@ class HelloCashClient {
 	 * @param string $url
 	 * @param array $query
 	 *
-	 * @return object
+	 * @return object response body
 	 * @throws HelloCashException
 	 * @throws \GuzzleHttp\Exception\GuzzleException
 	 */
 	final public function get( string $url, array $query = [] ): object {
-		$response = $this->client->request( 'GET', $url, [
-			RequestOptions::QUERY   => $query,
-			RequestOptions::HEADERS => $this->authenticateHeader(),
-		] );
+		do {
+			$this->loadResponse(
+				$this->client->request( 'GET', $url, [
+					RequestOptions::QUERY   => $query,
+					RequestOptions::HEADERS => $this->authenticateHeader(),
+				] )
+			);
+		} while ( $this->testForErrorAndInvalidTokenRetry() );
 
-		return $this->getBody( $response );
+		return $this->response_body;
 	}
 
 	/**
@@ -159,17 +199,21 @@ class HelloCashClient {
 	 * @param string $url
 	 * @param array $options
 	 *
-	 * @return object
+	 * @return object response body
 	 * @throws HelloCashException
 	 * @throws \GuzzleHttp\Exception\GuzzleException
 	 */
 	final public function post( string $url, array $options = [] ): object {
-		$response = $this->client->request( 'POST', $url, [
-			RequestOptions::JSON    => $options,
-			RequestOptions::HEADERS => $this->authenticateHeader(),
-		] );
+		do {
+			$this->loadResponse(
+				$this->client->request( 'POST', $url, [
+					RequestOptions::JSON    => $options,
+					RequestOptions::HEADERS => $this->authenticateHeader(),
+				] )
+			);
+		} while ( $this->testForErrorAndInvalidTokenRetry() );
 
-		return $this->getBody( $response );
+		return $this->response_body;
 	}
 
 	/**
@@ -178,18 +222,22 @@ class HelloCashClient {
 	 * @param string $url
 	 * @param array $options
 	 *
-	 * @return object
+	 * @return object response body
 	 * @throws HelloCashException
 	 * @throws \GuzzleHttp\Exception\GuzzleException
 	 */
 	final public function put( string $url, array $query = [], array $options = [] ): object {
-		$response = $this->client->request( 'PUT', $url, [
-			RequestOptions::QUERY   => $query,
-			RequestOptions::JSON    => $options,
-			RequestOptions::HEADERS => $this->authenticateHeader(),
-		] );
+		do {
+			$this->loadResponse(
+				$this->client->request( 'PUT', $url, [
+					RequestOptions::QUERY   => $query,
+					RequestOptions::JSON    => $options,
+					RequestOptions::HEADERS => $this->authenticateHeader(),
+				] )
+			);
+		} while ( $this->testForErrorAndInvalidTokenRetry() );
 
-		return $this->getBody( $response );
+		return $this->response_body;
 	}
 
 	/**
@@ -198,16 +246,20 @@ class HelloCashClient {
 	 * @param string $url
 	 * @param array $query
 	 *
-	 * @return object
+	 * @return object response body
 	 * @throws HelloCashException
 	 * @throws \GuzzleHttp\Exception\GuzzleException
 	 */
 	final public function delete( string $url, array $query = [] ): object {
-		$response = $this->client->request( 'DELETE', $url, [
-			RequestOptions::QUERY   => $query,
-			RequestOptions::HEADERS => $this->authenticateHeader(),
-		] );
+		do {
+			$this->loadResponse(
+				$this->client->request( 'DELETE', $url, [
+					RequestOptions::QUERY   => $query,
+					RequestOptions::HEADERS => $this->authenticateHeader(),
+				] )
+			);
+		} while ( $this->testForErrorAndInvalidTokenRetry() );
 
-		return $this->getBody( $response );
+		return $this->response_body;
 	}
 }

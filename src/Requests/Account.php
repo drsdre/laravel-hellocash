@@ -19,7 +19,7 @@ class Account
      *
      * @param HelloCashClient $client
      */
-    public function __construct(Client $client)
+    public function __construct(HelloCashClient $client)
     {
         $this->client = $client;
     }

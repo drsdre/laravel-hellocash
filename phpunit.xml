@@ -10,13 +10,16 @@
          processIsolation="false"
          stopOnFailure="false">
     <testsuites>
-        <testsuite name="Laravel HelloCash Test Suite">
-            <directory>tests</directory>
+        <testsuite name="Laravel HelloCash functional tests">
+            <directory suffix="Test.php">./tests/Functional/</directory>
+        </testsuite>
+        <testsuite name="Laravel HelloCash unit tests">
+            <directory suffix="Test.php">./tests/Unit/</directory>
         </testsuite>
     </testsuites>
     <filter>
-        <whitelist>
-            <directory suffix=".php">src/</directory>
+        <whitelist processUncoveredFilesFromWhitelist="true">
+            <directory suffix=".php">./src</directory>
         </whitelist>
     </filter>
     <logging>

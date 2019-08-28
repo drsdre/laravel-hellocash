@@ -28,7 +28,7 @@ class Connection
      *
      * @param HelloCashClient $client
      */
-    public function __construct(Client $client)
+    public function __construct(HelloCashClient $client)
     {
         $this->client = $client;
     }
@@ -36,7 +36,7 @@ class Connection
     /**
      * Get a webhook authorization code.
      *
-     * @return object
+     * @return object response
      *
      * @throws \GuzzleHttp\Exception\GuzzleException
      * @throws \drsdre\HelloCash\Exceptions\HelloCashException
