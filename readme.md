@@ -157,6 +157,16 @@ class VerifyCsrfToken extends Middleware
 
 ## API Methods
 
+### Postman Collection
+
+A Postman collection is available to test the calls. Make sure to setup an environment with the following keys:
+
+* principal
+* credentials
+* system
+
+[![Run in Postman](https://run.pstmn.io/button.svg)](https://app.getpostman.com/run-collection/5226958988d9957155b1)
+
 ### Invoices
 
 ##### Validate an invoice
