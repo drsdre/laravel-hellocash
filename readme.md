@@ -161,9 +161,10 @@ class VerifyCsrfToken extends Middleware
 
 A Postman collection is available to test the calls. Make sure to setup an environment with the following keys:
 
-* principal
-* credentials
-* system
+* endpoint: https://api-et.hellocash.net
+* principal: _as provided to you_
+* credentials: _as provided to you_
+* system: _as provided to you_
 
 [![Run in Postman](https://run.pstmn.io/button.svg)](https://app.getpostman.com/run-collection/5226958988d9957155b1)
 
