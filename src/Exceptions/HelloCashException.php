@@ -30,7 +30,7 @@ class HelloCashException extends Exception
 	const TRANSFER_NOT_MATCHED = 21;
 	const REFERENCEID_NOT_UNIQUE = 22;
 
-    public function __construct($message, $code)
+    public function __construct(string $message, int $code)
     {
         parent::__construct("Error {$code}': {$message}", $code);
     }

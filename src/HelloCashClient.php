@@ -19,6 +19,11 @@ class HelloCashClient {
 
 	const TOKEN_CACHE_HOURS = 23;
 
+    const STATUS_DRAFT = 'Pending sending to HelloCash';
+    const STATUS_SYSTEM_ERROR = 'HelloCash system error';
+    const STATUS_DATA_ERROR = 'Data error creating invoice';
+    const STATUS_NETWORK_ERROR = 'HelloCash down (API)';
+
 	/**
 	 * @var GuzzleClient
 	 */
