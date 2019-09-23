@@ -4,9 +4,11 @@ namespace drsdre\HelloCash;
 
 use drsdre\HelloCash\Exceptions\HelloCashException;
 use GuzzleHttp\Client as GuzzleClient;
+use GuzzleHttp\Exception\ClientException;
+use GuzzleHttp\Exception\RequestException;
+use GuzzleHttp\Exception\ServerException;
 use GuzzleHttp\RequestOptions;
 use Illuminate\Support\Facades\Cache;
-use Psr\Http\Message\ResponseInterface;
 
 class HelloCashClient {
 
@@ -32,17 +34,17 @@ class HelloCashClient {
 	/**
 	 * @var object
 	 */
-	protected $response;
+	public $response;
 
-	/**
+    /**
+     * @var object
+     */
+    protected $response_body;
+
+    /**
 	 * @var int
 	 */
 	protected $token_retries = 0;
-
-	/**
-	 * @var object
-	 */
-	public $response_body;
 
 	/**
 	 * Constructor.
@@ -101,11 +103,53 @@ class HelloCashClient {
 	/**
 	 * Load response into class
 	 *
-	 * @param ResponseInterface $response
-	 */
-	final private function loadResponse( ResponseInterface $response ): void {
-		$this->response = $response;
-		$this->response_body = json_decode( $response->getBody(), false, 512, JSON_BIGINT_AS_STRING );
+     * @param \Closure $call_api
+     *
+     * @return object
+     * @throws HelloCashException
+     */
+	final private function loadResponse( \Closure $call_api ): object {
+
+	    try {
+	        do {
+                $this->response = $call_api();
+                $this->response_body = json_decode( $this->response->getBody(), false, 512, JSON_BIGINT_AS_STRING );
+            } while ( $this->testForErrorAndInvalidTokenRetry() );
+
+            return $this->response_body;
+        } catch ( ServerException $e ) {
+            $message = 'HelloCash Server Error: ' . $e->getMessage();
+
+            // Retry
+            throw new HelloCashException( $message, HelloCashException::SERVER_ERROR, true );
+        } catch ( ClientException $e ) {
+            if ( $e->getCode() == 403 ) {
+                // If not, set status to error
+                $message = 'HelloCash Credentials are wrong, please reconfigure';
+
+                \Log::error( $message );
+
+                // Don't retry
+                throw new HelloCashException( $message, HelloCashException::WRONG_CREDENTIALS, false );
+            }
+
+            $this->response_body = json_decode( $e->getResponse()->getBody(), false );
+            if ( isset( $this->response_body->error->message ) && $this->response_body->error->message == 'FROM_INVALID' ) {
+                $message = 'Invalid HelloCash account:' . $e->getMessage();
+            } else {
+                // Bad response exception, handle this error
+                $message = 'Data Error: ' . $e->getMessage() . ' ' .
+                           ( isset( $this->response_body->error->message ) ?
+                               $this->response_body->error->message :
+                               print_r( $this->response_body, true ) );
+            }
+
+            // Don't retry
+            throw new HelloCashException( $message, HelloCashException::CLIENT_EXCEPTION, false );
+        } catch ( RequestException $e ) {
+            // Retry
+            throw new HelloCashException( 'Unable to contact HelloCash: ' . $e->getMessage(), HelloCashException::NETWORK_UNAVAILABLE, true );
+        }
 	}
 
 	/**
@@ -129,7 +173,7 @@ class HelloCashClient {
 				// Retry
 				return true;
 			} else {
-				throw new HelloCashException( $this->response->ErrorText, $this->response->ErrorCode );
+				throw new HelloCashException( $this->response->ErrorText, $this->response->ErrorCode, true );
 			}
 		}
 
@@ -148,26 +192,16 @@ class HelloCashClient {
 			return Cache::get( self::TOKEN_CACHE_KEY );
 		}
 
-		$config = config( 'hellocash' );
-
-		$client = new GuzzleClient( [
-			'base_uri' => $this->getUrl(),
-			'curl'     => $this->curlDoesntUseNss()
-				? [ CURLOPT_SSL_CIPHER_LIST => 'TLSv1' ]
-				: [],
-		] );
-
-		$this->loadResponse(
-			$client->post( '/authenticate', [
-				RequestOptions::JSON => [
-					'principal'   => $config['principal'],
-					'credentials' => $config['credentials'],
-					'system'      => $config['system'],
-				],
-			] )
-		);
-
-		$this->testForErrorAndInvalidTokenRetry();
+        $this->response_body = $this->loadResponse( function() {
+            $config = config( 'hellocash' );
+            return $this->client->post( '/authenticate', [
+                RequestOptions::JSON => [
+                    'principal'   => $config['principal'],
+                    'credentials' => $config['credentials'],
+                    'system'      => $config['system'],
+                ],
+            ] );
+		} );
 
 		// Cache token for 23 hours (according to HelloCash documentation
 		Cache::put( self::TOKEN_CACHE_KEY, $this->response_body->token, now()->addHours( self::TOKEN_CACHE_HOURS ) );
@@ -183,19 +217,14 @@ class HelloCashClient {
 	 *
 	 * @return object response body
 	 * @throws HelloCashException
-	 * @throws \GuzzleHttp\Exception\GuzzleException
 	 */
 	final public function get( string $url, array $query = [] ): object {
-		do {
-			$this->loadResponse(
-				$this->client->request( 'GET', $url, [
-					RequestOptions::QUERY   => $query,
-					RequestOptions::HEADERS => $this->authenticateHeader(),
-				] )
-			);
-		} while ( $this->testForErrorAndInvalidTokenRetry() );
-
-		return $this->response_body;
+        $this->loadResponse( function() use ( $url, $query ) {
+            return $this->client->request( 'GET', $url, [
+                RequestOptions::QUERY   => $query,
+                RequestOptions::HEADERS => $this->authenticateHeader(),
+            ] );
+        } );
 	}
 
 	/**
@@ -206,43 +235,34 @@ class HelloCashClient {
 	 *
 	 * @return object response body
 	 * @throws HelloCashException
-	 * @throws \GuzzleHttp\Exception\GuzzleException
 	 */
 	final public function post( string $url, array $options = [] ): object {
-		do {
-			$this->loadResponse(
-				$this->client->request( 'POST', $url, [
-					RequestOptions::JSON    => $options,
-					RequestOptions::HEADERS => $this->authenticateHeader(),
-				] )
-			);
-		} while ( $this->testForErrorAndInvalidTokenRetry() );
-
-		return $this->response_body;
+        return $this->loadResponse( function() use ( $url, $options ) {
+            return $this->client->request( 'POST', $url, [
+                RequestOptions::JSON    => $options,
+                RequestOptions::HEADERS => $this->authenticateHeader(),
+            ] );
+        } );
 	}
 
 	/**
 	 * Make a PATCH request.
 	 *
 	 * @param string $url
-	 * @param array $options
+	 * @param array $query
+     * @param array $options
 	 *
 	 * @return object response body
 	 * @throws HelloCashException
-	 * @throws \GuzzleHttp\Exception\GuzzleException
 	 */
 	final public function put( string $url, array $query = [], array $options = [] ): object {
-		do {
-			$this->loadResponse(
-				$this->client->request( 'PUT', $url, [
-					RequestOptions::QUERY   => $query,
-					RequestOptions::JSON    => $options,
-					RequestOptions::HEADERS => $this->authenticateHeader(),
-				] )
-			);
-		} while ( $this->testForErrorAndInvalidTokenRetry() );
-
-		return $this->response_body;
+        return $this->loadResponse( function() use ( $url, $query, $options ) {
+            return $this->client->request( 'PUT', $url, [
+                RequestOptions::QUERY   => $query,
+                RequestOptions::JSON    => $options,
+                RequestOptions::HEADERS => $this->authenticateHeader(),
+            ] );
+        } );
 	}
 
 	/**
@@ -253,18 +273,13 @@ class HelloCashClient {
 	 *
 	 * @return object response body
 	 * @throws HelloCashException
-	 * @throws \GuzzleHttp\Exception\GuzzleException
 	 */
 	final public function delete( string $url, array $query = [] ): object {
-		do {
-			$this->loadResponse(
-				$this->client->request( 'DELETE', $url, [
-					RequestOptions::QUERY   => $query,
-					RequestOptions::HEADERS => $this->authenticateHeader(),
-				] )
-			);
-		} while ( $this->testForErrorAndInvalidTokenRetry() );
-
-		return $this->response_body;
+        return $this->loadResponse( function() use ( $url, $query ) {
+            return $this->client->request( 'DELETE', $url, [
+                RequestOptions::QUERY   => $query,
+                RequestOptions::HEADERS => $this->authenticateHeader(),
+            ] );
+        } );
 	}
 }

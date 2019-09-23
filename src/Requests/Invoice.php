@@ -6,7 +6,7 @@ use DateTime;
 use drsdre\HelloCash\HelloCashClient;
 use GuzzleHttp\RequestOptions;
 
-class Invoice {
+class Invoice extends BaseRequest {
 
 	const ENDPOINT = '/invoices/';
 
@@ -28,20 +28,6 @@ class Invoice {
 	const STATUS_REPLACED = 'REPLACED';
 
 	const CURRENCY = 'ETB';
-
-	/**
-	 * @var HelloCashClient
-	 */
-	protected $client;
-
-	/**
-	 * Constructor.
-	 *
-	 * @param HelloCashClient $client
-	 */
-	public function __construct( HelloCashClient $client ) {
-		$this->client = $client;
-	}
 
 	/**
 	 * Validate an invoice.

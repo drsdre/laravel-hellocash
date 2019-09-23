@@ -5,23 +5,9 @@ namespace drsdre\HelloCash\Requests;
 use DateTime;
 use drsdre\HelloCash\HelloCashClient;
 
-class Airtime {
+class Airtime extends BaseRequest {
 
 	const ENDPOINT = '/airtime/';
-
-	/**
-	 * @var HelloCashClient
-	 */
-	protected $client;
-
-	/**
-	 * Constructor.
-	 *
-	 * @param HelloCashClient $client
-	 */
-	public function __construct( HelloCashClient $client ) {
-		$this->client = $client;
-	}
 
 	/**
 	 * Finds a list of airtime transfers to and from this account.
@@ -120,14 +106,5 @@ class Airtime {
 	 */
 	final public function available(): object {
 		return $this->client->get( self::ENDPOINT . 'available' );
-	}
-
-	/**
-	 * Get the public key as query string.
-	 *
-	 * @return string
-	 */
-	final protected function getSystem(): string {
-		return config( 'service.hellocash.system' );
 	}
 }

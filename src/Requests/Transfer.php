@@ -4,7 +4,7 @@ namespace drsdre\HelloCash\Requests;
 
 use drsdre\HelloCash\HelloCashClient;
 
-class Transfer {
+class Transfer extends BaseRequest {
 
 	const ENDPOINT = '/transfers/';
 
@@ -24,20 +24,6 @@ class Transfer {
 	const STATUS_CANCELED = 'CANCELED';
 	const STATUS_EXPIRED = 'EXPIRED';
 	const STATUS_REPLACED = 'REPLACED';
-
-	/**
-	 * @var HelloCashClient
-	 */
-	protected $client;
-
-	/**
-	 * Constructor.
-	 *
-	 * @param HelloCashClient $client
-	 */
-	public function __construct( HelloCashClient $client ) {
-		$this->client = $client;
-	}
 
 	/**
 	 * Create a new transaction.
@@ -132,14 +118,5 @@ class Transfer {
 	 */
 	final public function authorize( array $transfer_ids ): object {
 		return $this->client->post( self::ENDPOINT . 'authorize', [ 'TransferIdList' => $transfer_ids ] );
-	}
-
-	/**
-	 * Get the public key.
-	 *
-	 * @return string
-	 */
-	protected function getSystem(): string {
-		return config( 'service.hellocash.system' );
 	}
 }

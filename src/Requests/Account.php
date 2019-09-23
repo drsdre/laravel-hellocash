@@ -5,34 +5,9 @@ namespace drsdre\HelloCash\Requests;
 use drsdre\HelloCash\HelloCashClient;
 use Illuminate\Support\Carbon;
 
-class Account
+class Account extends BaseRequest
 {
     const ENDPOINT = '/accounts/';
-
-    /**
-     * @var HelloCashClient
-     */
-    protected $client;
-
-    /**
-     * Constructor.
-     *
-     * @param HelloCashClient $client
-     */
-    public function __construct(HelloCashClient $client)
-    {
-        $this->client = $client;
-    }
-
-    /**
-     * Get the public key as query string.
-     *
-     * @return string
-     */
-    protected function getSystem() : string
-    {
-        return config('service.hellocash.system');
-    }
 
     /**
      * Get the expiration date.

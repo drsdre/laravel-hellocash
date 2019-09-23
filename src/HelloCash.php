@@ -9,23 +9,23 @@ use drsdre\HelloCash\Requests\Invoice;
 use drsdre\HelloCash\Requests\Transfer;
 
 class HelloCash {
-	public function accounts() {
+    final public function accounts(): Account {
 		return new Account();
 	}
 
-	public function airtime() {
+    final public function airtime(): Airtime {
 		return new Airtime();
 	}
 
-	public function connections() {
+    final public function connections(): Connection {
 		return new Connection();
 	}
 
-	public function invoices() {
+    final public function invoices(): Invoice {
 		return new Invoice();
 	}
 
-	public function transfers() {
+	final public function transfers(): Transfer {
 		return new Transfer();
 	}
 }

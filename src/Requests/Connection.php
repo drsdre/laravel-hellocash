@@ -4,7 +4,7 @@ namespace drsdre\HelloCash\Requests;
 
 use drsdre\HelloCash\HelloCashClient;
 
-class Connection
+class Connection extends BaseRequest
 {
     const ENDPOINT = '/connections/';
 
@@ -17,21 +17,6 @@ class Connection
      * Cancel/Refund Transaction event.
      */
     const REFUND_TRANSACTION = 1797;
-
-    /**
-     * @var HelloCashClient
-     */
-    protected $client;
-
-    /**
-     * Constructor.
-     *
-     * @param HelloCashClient $client
-     */
-    public function __construct(HelloCashClient $client)
-    {
-        $this->client = $client;
-    }
 
     /**
      * Get a webhook authorization code.
