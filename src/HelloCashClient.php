@@ -125,7 +125,7 @@ class HelloCashClient {
         } catch ( ClientException $e ) {
             if ( $e->getCode() == 403 ) {
                 // If not, set status to error
-                $message = 'HelloCash Credentials are wrong, please reconfigure';
+                $message = 'HelloCash Credentials are wrong, please reconfigure. '  . $e->getMessage();
 
                 \Log::error( $message );
 
