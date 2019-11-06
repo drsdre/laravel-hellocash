@@ -152,12 +152,13 @@ class Invoice extends BaseRequest {
 	 *
 	 * @param int $invoice_code The unique Invoice ID.
 	 *
-	 * @return object response
+	 * @return bool true if deleted
 	 *
 	 * @throws \GuzzleHttp\Exception\GuzzleException
 	 * @throws \drsdre\HelloCash\Exceptions\HelloCashException
 	 */
-	final public function remove( int $invoice_code ): object {
-		return $this->client->delete( self::ENDPOINT . $invoice_code );
+	final public function remove( int $invoice_code ): bool {
+        $this->client->delete( self::ENDPOINT . $invoice_code );
+		return true;
 	}
 }

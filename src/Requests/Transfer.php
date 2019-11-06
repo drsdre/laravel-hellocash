@@ -97,13 +97,14 @@ class Transfer extends BaseRequest {
 	 *
 	 * @param array $transfer_ids
 	 *
-	 * @return object response
+	 * @return bool true if deleted
 	 *
 	 * @throws \GuzzleHttp\Exception\GuzzleException
 	 * @throws \drsdre\HelloCash\Exceptions\HelloCashException
 	 */
-	final public function cancel( array $transfer_ids ): object {
-		return $this->client->post( self::ENDPOINT . 'cancel', [ 'TransferIdList' => $transfer_ids ] );
+	final public function cancel( array $transfer_ids ): bool {
+		$this->client->delete( self::ENDPOINT . 'cancel', [ 'TransferIdList' => $transfer_ids ] );
+        return true;
 	}
 
 	/**
