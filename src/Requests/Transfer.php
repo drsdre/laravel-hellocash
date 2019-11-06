@@ -25,39 +25,56 @@ class Transfer extends BaseRequest {
 	const STATUS_EXPIRED = 'EXPIRED';
 	const STATUS_REPLACED = 'REPLACED';
 
-	/**
-	 * Create a new transaction.
-	 *
-	 * @param array $transfer_parameters
-	 *
-	 * @return object response
-	 *
-	 * @throws \GuzzleHttp\Exception\GuzzleException
-	 * @throws \drsdre\HelloCash\Exceptions\HelloCashException
-	 */
-	final public function validate( array $transfer_parameters ): object {
-		return $this->client->post(
-			self::ENDPOINT . 'validate',
-			$transfer_parameters
-		);
-	}
+    /**
+     * Create a transfer.
+     *
+     * @param int $amount
+     * @param string $description
+     * @param string $to_hellocash_account
+     * @param string $tracenumber
+     * @param string $referenceid
+     * @param bool $notify_from
+     * @param bool $notify_to
+     * @param array $parameters optional parameters (Full list available here:
+     *                          https://github.com/HelloCash/API/wiki/Optional-Parameters)
+     * @param bool $replace Replace existing transfer with referenceid with new transfer
+     * @param bool $validate_only Only validate data, don't create transfer
+     *
+     * @return object response
+     *
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws \drsdre\HelloCash\Exceptions\HelloCashException
+     */
+    final public function create(
+        int $amount,
+        string $description,
+        string $to_hellocash_account,
+        string $tracenumber,
+        string $referenceid,
+        bool $notify_from = true,
+        bool $notify_to = true,
+        array $parameters = [],
+        bool $replace = false,
+        bool $validate_only = false
+    ): object {
+        $parameters = array_merge(
+            [
+                'amount'      => $amount, // Make sure this become numeric
+                'description' => $description,
+                'to'          => $to_hellocash_account,// Make sure this does not become numeric
+                'currency'    => self::CURRENCY,
+                'tracenumber' => $tracenumber,
+                'referenceid' => $referenceid,
+                'notifyfrom'  => $notify_from,
+                'notifyto'    => $notify_to,
+            ],
+            $parameters
+        );
 
-	/**
-	 * Create a new transaction.
-	 *
-	 * @param array $transfer_parameters
-	 *
-	 * @return object response
-	 *
-	 * @throws \GuzzleHttp\Exception\GuzzleException
-	 * @throws \drsdre\HelloCash\Exceptions\HelloCashException
-	 */
-	final public function create( array $transfer_parameters ): object {
-		return $this->client->post(
-			self::ENDPOINT,
-			$transfer_parameters
-		);
-	}
+        return $replace
+            ? $this->client->put( self::ENDPOINT . $referenceid, $parameters )
+            : $this->client->post( self::ENDPOINT . ( $validate_only ? 'validate' : ''), $parameters );
+    }
 
 	/**
 	 * Get the transactions for an id.

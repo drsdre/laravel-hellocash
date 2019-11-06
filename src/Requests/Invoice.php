@@ -86,7 +86,9 @@ class Invoice extends BaseRequest {
 	 * @param bool $notify_to
 	 * @param array $parameters optional parameters (Full list available here:
 	 *                          https://github.com/HelloCash/API/wiki/Optional-Parameters)
-	 *
+     * @param bool $validate_only Only validate data, don't create invoice
+     *
+     *
 	 * @return object response
 	 *
 	 * @throws \GuzzleHttp\Exception\GuzzleException
@@ -100,7 +102,8 @@ class Invoice extends BaseRequest {
 		DateTime $expiration_dt,
 		bool $notify_from = true,
 		bool $notify_to = true,
-		array $parameters = []
+		array $parameters = [],
+        bool $validate_only = false
 	): object {
 		$parameters = array_merge(
 			[
@@ -116,7 +119,7 @@ class Invoice extends BaseRequest {
 			$parameters
 		);
 
-		return $this->client->post( self::ENDPOINT, $parameters );
+		return $this->client->post( self::ENDPOINT. ( $validate_only ? 'validate' : ''), $parameters );
 	}
 
 	/**
