@@ -2,6 +2,7 @@
 
 namespace drsdre\HelloCash;
 
+use GuzzleHttp\Client;
 use Illuminate\Support\ServiceProvider;
 
 class HelloCashServiceProvider extends ServiceProvider {
@@ -36,7 +37,7 @@ class HelloCashServiceProvider extends ServiceProvider {
 		);
 
 		$this->app->singleton( HelloCashClient::class, function () {
-			return new HelloCashClient();
+			return new HelloCashClient( new Client() );
 		} );
 	}
 

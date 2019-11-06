@@ -46,13 +46,13 @@ class HelloCashClient {
 	 */
 	protected $token_retries = 0;
 
-	/**
-	 * Constructor.
-	 *
-	 * @return void
-	 */
-	public function __construct() {
-		$this->client = new GuzzleClient( [
+    /**
+     * HelloCashClient constructor.
+     *
+     * @param GuzzleClient $client
+     */
+	public function __construct(GuzzleClient $client) {
+		$this->client = new $client( [
 			'base_uri' => $this->getUrl(),
 			'curl'     => $this->curlDoesntUseNss()
 				? [ CURLOPT_SSL_CIPHER_LIST => 'TLSv1' ]
@@ -65,7 +65,7 @@ class HelloCashClient {
 	 *
 	 * @return string
 	 */
-	final public function getUrl(): string {
+	public function getUrl(): string {
 		return self::PRODUCTION_URL;
 	}
 
@@ -218,7 +218,7 @@ class HelloCashClient {
 	 * @return object response body
 	 * @throws HelloCashException
 	 */
-	final public function get( string $url, array $query = [] ): object {
+	public function get( string $url, array $query = [] ): object {
         $this->loadResponse( function() use ( $url, $query ) {
             return $this->client->request( 'GET', $url, [
                 RequestOptions::QUERY   => $query,
@@ -236,7 +236,7 @@ class HelloCashClient {
 	 * @return object response body
 	 * @throws HelloCashException
 	 */
-	final public function post( string $url, array $options = [] ): object {
+	public function post( string $url, array $options = [] ): object {
         return $this->loadResponse( function() use ( $url, $options ) {
             return $this->client->request( 'POST', $url, [
                 RequestOptions::JSON    => $options,
@@ -255,7 +255,7 @@ class HelloCashClient {
 	 * @return object response body
 	 * @throws HelloCashException
 	 */
-	final public function put( string $url, array $query = [], array $options = [] ): object {
+	public function put( string $url, array $query = [], array $options = [] ): object {
         return $this->loadResponse( function() use ( $url, $query, $options ) {
             return $this->client->request( 'PUT', $url, [
                 RequestOptions::QUERY   => $query,
@@ -274,7 +274,7 @@ class HelloCashClient {
 	 * @return object response body
 	 * @throws HelloCashException
 	 */
-	final public function delete( string $url, array $query = [] ): object {
+	public function delete( string $url, array $query = [] ): object {
         return $this->loadResponse( function() use ( $url, $query ) {
             return $this->client->request( 'DELETE', $url, [
                 RequestOptions::QUERY   => $query,
