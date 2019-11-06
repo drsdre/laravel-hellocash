@@ -29,6 +29,7 @@ class Transfer extends BaseRequest {
      * Create a transfer.
      *
      * @param int $amount
+     * @param string $currency
      * @param string $description
      * @param string $to_hellocash_account
      * @param string $tracenumber
@@ -47,6 +48,7 @@ class Transfer extends BaseRequest {
      */
     final public function create(
         int $amount,
+        string $currency,
         string $description,
         string $to_hellocash_account,
         string $tracenumber,
@@ -62,7 +64,7 @@ class Transfer extends BaseRequest {
                 'amount'      => $amount, // Make sure this become numeric
                 'description' => $description,
                 'to'          => $to_hellocash_account,// Make sure this does not become numeric
-                'currency'    => self::CURRENCY,
+                'currency'    => $currency,
                 'tracenumber' => $tracenumber,
                 'referenceid' => $referenceid,
                 'notifyfrom'  => $notify_from,
