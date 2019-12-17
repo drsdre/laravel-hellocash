@@ -122,7 +122,7 @@ class Transfer extends BaseRequest {
 	 * @throws \drsdre\HelloCash\Exceptions\HelloCashException
 	 */
 	final public function cancel( array $transfer_ids ): bool {
-		$this->client->delete( self::ENDPOINT . 'cancel', [ 'TransferIdList' => $transfer_ids ] );
+		$this->client->post( self::ENDPOINT . 'cancel', [ 'TransferIdList' => $transfer_ids ] );
         return true;
 	}
 
