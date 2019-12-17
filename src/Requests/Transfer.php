@@ -91,7 +91,7 @@ class Transfer extends BaseRequest {
 	final public function get( string $transfer_id ): object {
 		$response = $this->client->get( self::ENDPOINT . $transfer_id );
 
-		return $response->Transactions;
+		return $response;
 	}
 
 

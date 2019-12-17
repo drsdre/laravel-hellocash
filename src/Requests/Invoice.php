@@ -125,14 +125,14 @@ class Invoice extends BaseRequest {
 	/**
 	 * Retrieve information about an invoice.
 	 *
-	 * @param int $invoice_id The unique Invoice ID.
+	 * @param string $invoice_id The unique Invoice ID.
 	 *
 	 * @return object response
 	 *
 	 * @throws \GuzzleHttp\Exception\GuzzleException
 	 * @throws \drsdre\HelloCash\Exceptions\HelloCashException
 	 */
-	final public function get( int $invoice_id ): object {
+	final public function get( string $invoice_id ): object {
 		return $this->client->get( self::ENDPOINT . $invoice_id );
 	}
 
