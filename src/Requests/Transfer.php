@@ -88,7 +88,7 @@ class Transfer extends BaseRequest {
 	 * @throws \GuzzleHttp\Exception\GuzzleException
 	 * @throws \drsdre\HelloCash\Exceptions\HelloCashException
 	 */
-	final public function get( string $transfer_id ): array {
+	final public function get( string $transfer_id ): object {
 		$response = $this->client->get( self::ENDPOINT . $transfer_id );
 
 		return $response->Transactions;
@@ -105,7 +105,7 @@ class Transfer extends BaseRequest {
 	 * @throws \GuzzleHttp\Exception\GuzzleException
 	 * @throws \drsdre\HelloCash\Exceptions\HelloCashException
 	 */
-	final public function search( array $query_params ): array {
+	final public function search( array $query_params ): object {
 		$response = $this->client->get( self::ENDPOINT, $query_params );
 
 		return $response->Transactions;

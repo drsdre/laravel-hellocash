@@ -219,7 +219,7 @@ class HelloCashClient {
 	 * @throws HelloCashException
 	 */
 	public function get( string $url, array $query = [] ): object {
-        $this->loadResponse( function() use ( $url, $query ) {
+        return $this->loadResponse( function() use ( $url, $query ) {
             return $this->client->request( 'GET', $url, [
                 RequestOptions::QUERY   => $query,
                 RequestOptions::HEADERS => $this->authenticateHeader(),
