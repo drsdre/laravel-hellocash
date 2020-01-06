@@ -5,48 +5,51 @@ namespace drsdre\HelloCash;
 use GuzzleHttp\Client;
 use Illuminate\Support\ServiceProvider;
 
-class HelloCashServiceProvider extends ServiceProvider {
+class HelloCashServiceProvider extends ServiceProvider
+{
 
-	/**
-	 * Indicates if loading of the provider is deferred.
-	 *
-	 * @var bool
-	 */
-	protected $defer = true;
+    /**
+     * Indicates if loading of the provider is deferred.
+     *
+     * @var bool
+     */
+    protected $defer = true;
 
-	protected $bearer_token;
+    protected $bearer_token;
 
-	public function boot()
-	{
-		$configPath = __DIR__.'/../config';
-		$this->mergeConfigFrom($configPath.'/config.php', 'hellocash');
-		$this->publishes([
-			$configPath.'/config.php' => config_path('hellocash.php'),
-		], 'config');
-	}
+    public function boot()
+    {
+        $configPath = __DIR__.'/../config';
+        $this->mergeConfigFrom($configPath.'/config.php', 'hellocash');
+        $this->publishes([
+            $configPath.'/config.php' => config_path('hellocash.php'),
+        ], 'config');
+    }
 
-	/**
-	 * Register the application services.
-	 *
-	 * @return void
-	 */
-	public function register() {
-		$this->mergeConfigFrom(
-			__DIR__ . '/../config/config.php',
-			'services'
-		);
+    /**
+     * Register the application services.
+     *
+     * @return void
+     */
+    public function register()
+    {
+        $this->mergeConfigFrom(
+            __DIR__ . '/../config/config.php',
+            'services'
+        );
 
-		$this->app->singleton( HelloCashClient::class, function () {
-			return new HelloCashClient( new Client() );
-		} );
-	}
+        $this->app->singleton(HelloCashClient::class, function () {
+            return new HelloCashClient(new Client());
+        });
+    }
 
-	/**
-	 * Get the services provided by the provider.
-	 *
-	 * @return array
-	 */
-	public function provides() {
-		return [ HelloCashClient::class ];
-	}
+    /**
+     * Get the services provided by the provider.
+     *
+     * @return array
+     */
+    public function provides()
+    {
+        return [ HelloCashClient::class ];
+    }
 }

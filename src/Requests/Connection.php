@@ -2,7 +2,8 @@
 
 namespace drsdre\HelloCash\Requests;
 
-use drsdre\HelloCash\HelloCashClient;
+use drsdre\HelloCash\Exceptions\HelloCashException;
+use GuzzleHttp\Exception\GuzzleException;
 
 class Connection extends BaseRequest
 {
@@ -23,8 +24,8 @@ class Connection extends BaseRequest
      *
      * @return object response
      *
-     * @throws \GuzzleHttp\Exception\GuzzleException
-     * @throws \drsdre\HelloCash\Exceptions\HelloCashException
+     * @throws GuzzleException
+     * @throws HelloCashException
      */
     final public function getAuthorizationCode(): object
     {

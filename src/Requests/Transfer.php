@@ -2,28 +2,29 @@
 
 namespace drsdre\HelloCash\Requests;
 
-use drsdre\HelloCash\HelloCashClient;
+use drsdre\HelloCash\Exceptions\HelloCashException;
+use GuzzleHttp\Exception\GuzzleException;
 
-class Transfer extends BaseRequest {
+class Transfer extends BaseRequest
+{
+    const ENDPOINT = '/transfers/';
 
-	const ENDPOINT = '/transfers/';
+    // Transient statuses
+    const STATUS_INITIALIZING = 'INITIALIZING';
+    const STATUS_VERIFYING = 'VERIFYING';
+    const STATUS_AUTHORIZING = 'AUTHORIZING';
 
-	// Transient statuses
-	const STATUS_INITIALIZING = 'INITIALIZING';
-	const STATUS_VERIFYING = 'VERIFYING';
-	const STATUS_AUTHORIZING = 'AUTHORIZING';
+    // Long-term transient statuses
+    const STATUS_PREPARED = 'PREPARED';
+    const STATUS_PENDING = 'PENDING';
+    const STATUS_RECEIVED = 'RECEIVED';
 
-	// Long-term transient statuses
-	const STATUS_PREPARED = 'PREPARED';
-	const STATUS_PENDING = 'PENDING';
-	const STATUS_RECEIVED = 'RECEIVED';
-
-	// Final statuses
-	const STATUS_PROCESSED = 'PROCESSED';
-	const STATUS_DENIED = 'DENIED';
-	const STATUS_CANCELED = 'CANCELED';
-	const STATUS_EXPIRED = 'EXPIRED';
-	const STATUS_REPLACED = 'REPLACED';
+    // Final statuses
+    const STATUS_PROCESSED = 'PROCESSED';
+    const STATUS_DENIED = 'DENIED';
+    const STATUS_CANCELED = 'CANCELED';
+    const STATUS_EXPIRED = 'EXPIRED';
+    const STATUS_REPLACED = 'REPLACED';
 
     /**
      * Create a transfer.
@@ -43,8 +44,8 @@ class Transfer extends BaseRequest {
      *
      * @return object response
      *
-     * @throws \GuzzleHttp\Exception\GuzzleException
-     * @throws \drsdre\HelloCash\Exceptions\HelloCashException
+     * @throws GuzzleException
+     * @throws HelloCashException
      */
     final public function create(
         int $amount,
@@ -74,69 +75,73 @@ class Transfer extends BaseRequest {
         );
 
         return $replace
-            ? $this->client->put( self::ENDPOINT . $referenceid, $parameters )
-            : $this->client->post( self::ENDPOINT . ( $validate_only ? 'validate' : ''), $parameters );
+            ? $this->client->put(self::ENDPOINT . $referenceid, $parameters)
+            : $this->client->post(self::ENDPOINT . ($validate_only ? 'validate' : ''), $parameters);
     }
 
-	/**
-	 * Get the transactions for an id.
-	 *
-	 * @param string $transfer_id
-	 *
-	 * @return array transactions
-	 *
-	 * @throws \GuzzleHttp\Exception\GuzzleException
-	 * @throws \drsdre\HelloCash\Exceptions\HelloCashException
-	 */
-	final public function get( string $transfer_id ): object {
-		$response = $this->client->get( self::ENDPOINT . $transfer_id );
+    /**
+     * Get the transactions for an id.
+     *
+     * @param string $transfer_id
+     *
+     * @return array transactions
+     *
+     * @throws GuzzleException
+     * @throws HelloCashException
+     */
+    final public function get(string $transfer_id): object
+    {
+        $response = $this->client->get(self::ENDPOINT . $transfer_id);
 
-		return $response;
-	}
+        return $response;
+    }
 
 
-	/**
-	 * Search for transfers.
-	 *
-	 * @param array $query_params (keys: offset, limit, status, statusdetail, tracenumber, referenceid, startdate, enddate)
-	 *
-	 * @return array transactions
-	 *
-	 * @throws \GuzzleHttp\Exception\GuzzleException
-	 * @throws \drsdre\HelloCash\Exceptions\HelloCashException
-	 */
-	final public function search( array $query_params ): object {
-		$response = $this->client->get( self::ENDPOINT, $query_params );
+    /**
+     * Search for transfers.
+     *
+     * @param array $query_params (keys: offset, limit, status, statusdetail, tracenumber, referenceid, startdate, enddate)
+     *
+     * @return array transactions
+     *
+     * @throws GuzzleException
+     * @throws HelloCashException
+     */
+    final public function search(array $query_params): object
+    {
+        $response = $this->client->get(self::ENDPOINT, $query_params);
 
-		return $response->Transactions;
-	}
+        return $response->Transactions;
+    }
 
-	/**
-	 * Cancel a list of transfers.
-	 *
-	 * @param array $transfer_ids
-	 *
-	 * @return bool true if deleted
-	 *
-	 * @throws \GuzzleHttp\Exception\GuzzleException
-	 * @throws \drsdre\HelloCash\Exceptions\HelloCashException
-	 */
-	final public function cancel( array $transfer_ids ): bool {
-		$this->client->post( self::ENDPOINT . 'cancel', [ 'TransferIdList' => $transfer_ids ] );
+    /**
+     * Cancel a list of transfers.
+     *
+     * @param array $transfer_ids
+     *
+     * @return bool true if deleted
+     *
+     * @throws GuzzleException
+     * @throws HelloCashException
+     */
+    final public function cancel(array $transfer_ids): bool
+    {
+        $this->client->post(self::ENDPOINT . 'cancel', [ 'TransferIdList' => $transfer_ids ]);
         return true;
-	}
+    }
 
-	/**
-	 * Authorize a list of transfers
-	 *
-	 * @param array $transfer_ids
-	 *
-	 * @return object response
-	 *
-	 * @throws \GuzzleHttp\Exception\GuzzleException
-	 * @throws \drsdre\HelloCash\Exceptions\HelloCashException
-	 */
-	final public function authorize( array $transfer_ids ): object {
-		return $this->client->post( self::ENDPOINT . 'authorize', [ 'TransferIdList' => $transfer_ids ] );
-	}
+    /**
+     * Authorize a list of transfers
+     *
+     * @param array $transfer_ids
+     *
+     * @return object response
+     *
+     * @throws GuzzleException
+     * @throws HelloCashException
+     */
+    final public function authorize(array $transfer_ids): object
+    {
+        return $this->client->post(self::ENDPOINT . 'authorize', [ 'TransferIdList' => $transfer_ids ]);
+    }
 }

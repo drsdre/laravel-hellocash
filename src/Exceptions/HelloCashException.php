@@ -5,8 +5,8 @@ namespace drsdre\HelloCash\Exceptions;
 use Exception;
 use Illuminate\Support\Arr;
 
-class HelloCashException extends Exception {
-
+class HelloCashException extends Exception
+{
     const BALANCE_TOO_LOW = 0;
     const DAILY_LIMIT_REACHED = 1;
     const MAX_CREDIT_LIMIT_REACHED = 2;
@@ -71,17 +71,20 @@ class HelloCashException extends Exception {
     /** @var bool */
     public $recoverable = true;
 
-    public function __construct( string $message, int $code, bool $recoverable = true ) {
+    public function __construct(string $message, int $code, bool $recoverable = true)
+    {
         $this->recoverable = $recoverable;
 
-        parent::__construct( "Error {$code}: {$message}", $code );
+        parent::__construct("Error {$code}: {$message}", $code);
     }
 
-    final public function is_recoverable(): bool {
+    final public function is_recoverable(): bool
+    {
         return $this->recoverable;
     }
 
-    final public function code_explanation(): string {
-        return Arr::get(HelloCashException::EXCEPTION_EXPLANATIONS, $this->getCode(), 'Unknown code ' . $this->getCode() );
+    final public function code_explanation(): string
+    {
+        return Arr::get(HelloCashException::EXCEPTION_EXPLANATIONS, $this->getCode(), 'Unknown code ' . $this->getCode());
     }
 }

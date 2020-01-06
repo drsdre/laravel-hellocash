@@ -114,7 +114,7 @@ class WebhookController extends BaseController
     /**
      * Handle payment notifications.
      *
-     * @param  \Illuminate\Http\Request $request
+     * @param  Request $request
      */
     protected function handleEventNotification(Request $request)
     {
