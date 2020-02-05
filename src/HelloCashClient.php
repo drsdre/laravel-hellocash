@@ -157,7 +157,8 @@ class HelloCashClient
             throw new HelloCashException($message, HelloCashException::CLIENT_EXCEPTION, false);
         } catch (RequestException $e) {
             // Retry
-            throw new HelloCashException('Unable to contact HelloCash: ' . $e->getMessage(), HelloCashException::NETWORK_UNAVAILABLE, true);
+            throw new HelloCashException( 'Unable to contact HelloCash: ' .
+                                          $e->getMessage(), HelloCashException::NETWORK_UNAVAILABLE, true );
         }
     }
 
@@ -204,14 +205,26 @@ class HelloCashClient
         }
 
         $this->response_body = $this->loadResponse(function () {
-            $config = config('hellocash');
-            return $this->client->post('/authenticate', [
+            $config = config( 'hellocash' );
+
+            // Use long term refresh token if available
+            if ( isset( $config['token'] ) ) {
+                return $this->client->post( '/authenticate', [
+                    RequestOptions::JSON => [
+                        'principal' => $config['principal'],
+                        'token'     => $config['token'],
+                        'system'    => $config['system'],
+                    ],
+                ] );
+            }
+
+            return $this->client->post( '/authenticate', [
                 RequestOptions::JSON => [
                     'principal'   => $config['principal'],
                     'credentials' => $config['credentials'],
                     'system'      => $config['system'],
                 ],
-            ]);
+            ] );
         });
 
         // Cache token for 23 hours (according to HelloCash documentation
