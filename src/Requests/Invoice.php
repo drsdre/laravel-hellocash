@@ -30,52 +30,6 @@ class Invoice extends BaseRequest
     const CURRENCY = 'ETB';
 
     /**
-     * Validate an invoice.
-     *
-     * @param int $amount
-     * @param string $description
-     * @param string $from_account
-     * @param string $tracenumber
-     * @param DateTime $expiration_dt
-     * @param bool $notify_from
-     * @param bool $notify_to
-     * @param array $parameters optional parameters (Full list available here:
-     *                          https://github.com/HelloCash/API/wiki/Optional-Parameters)
-     *
-     * @return object response
-     *
-     * @throws GuzzleException
-     * @throws HelloCashException
-     */
-    final public function validate(
-        int $amount,
-        string $description,
-        string $from_account,
-        string $tracenumber,
-        DateTime $expiration_dt,
-        bool $notify_from = true,
-        bool $notify_to = true,
-        array $parameters = []
-    ): object {
-        return $this->client->post(
-            self::ENDPOINT . 'validate',
-            array_merge(
-                [
-                    'amount'      => $amount, // Make sure this become numeric
-                    'description' => $description,
-                    'from'        => $from_account,// Make sure this does not become numeric
-                    'currency'    => self::CURRENCY,
-                    'tracenumber' => $tracenumber,
-                    'expires'     => $expiration_dt->format(DateTime::RFC3339),
-                    'notifyfrom'  => $notify_from,
-                    'notifyto'    => $notify_to,
-                ],
-                $parameters
-            )
-        );
-    }
-
-    /**
      * Create an invoice.
      *
      * @param int $amount

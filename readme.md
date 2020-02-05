@@ -70,28 +70,30 @@ If you are using an older version, add the following service provider in your `c
 ```php
 'providers' => [
     drsdre\HelloCash\HelloCashServiceProvider::class,
-],
+]
 ```
 
 #### Configuration
 
-Add the following array in your `config/services.php`.
+In `config/hellocash.php` the connection parameters are managed. It is recommended to use 'token' based authentication instead of 'credentials'. 
 
 ```php
-'hellocash' => [
+return [
     'principal' => env('HELLOCASH_PRINCIPAL'),
     'credentials' => env('HELLOCASH_CREDENTIALS'),
+    'token' => env('HELLOCASH_TOKEN'),
     'system' => env('HELLOCASH_SYSTEM'),
-],
+    'webhook_secret' => env('HELLOCASH_WEBHOOK_SECRET'),
+];
 ```
 
-The `principal`, `credentials` and `system` data you get from HelloCash.
+The `principal` and `system` data you get from HelloCash. The 'token' you generate in the HelloCash portal in connection or through the 'connection' API endpoint.
 
 > Read more about API authentication in the documentation: https://api-et.hellocash.net/docs/#/Authenticate
 
 ## Handling Webhooks
 
-HelloCash supports Webhooks, and this package offers a controller which can be extended to handle incoming notification events.
+HelloCash supports Webhooks, and this package offers a controller which can be extended to handle incoming notification events. Make sure to set the 'HELLOCASH_WEBHOOK_SECRET' environment parameter. This can be generated in the HelloCash portal connection settings or through 'connection' API endpoint.
 
 > Read more about the Webhooks on the wiki: https://api-et.hellocash.net/docs/#/Connection
 
@@ -99,7 +101,7 @@ HelloCash supports Webhooks, and this package offers a controller which can be e
 
 You can make one controller to handle all the events, or make a controller for each event. Either way, your controllers must extend the `drsdre\HelloCash\WebhookController`. The webhook verification is handled automatically.
 
-Hellocash send updates on transfers and invoices through the webhook. To handle those events, you controller must extend the `handleEventNotification` method.
+HelloCash send updates on transfers and invoices through the webhook. To handle those events, you controller must extend the `handleEventNotification` method.
 
 ```php
 <?php
@@ -170,24 +172,16 @@ A Postman collection is available to test the calls. Make sure to setup an envir
 
 ### Invoices
 
-##### Validate an invoice
-
-> See: https://api-et.hellocash.net/docs/#!/Invoice/invoice_verify
-
-```php
-$invoice = app(drsdre\HelloCash\Requests\Invoice::class);
-
-$invoiceCode = $invoice->validate(100, [...]);
-```
-
-##### Create an invoice
+##### Create or validate an invoice
 
 > See: https://api-et.hellocash.net/docs/#/Invoice
 
 ```php
-$invoice = app(drsdre\HelloCash\Requests\Invoice::class);
+$HC_invoice = app(drsdre\HelloCash\Requests\Invoice::class);
 
-$invoiceCode = $invoice->create(100, [...]);
+$invoice = $HC_invoice->create(
+    ...
+);
 ```
 
 ##### Get the status of an invoice
@@ -195,20 +189,20 @@ $invoiceCode = $invoice->create(100, [...]);
 > See: https://api-et.hellocash.net/docs/#!/Invoice/invoice_findByIdWrap
 
 ```php
-$invoice = app(drsdre\HelloCash\Requests\Invoice::class);
+$HC_invoice = app(drsdre\HelloCash\Requests\Invoice::class);
 
-$response = $invoice->get('175936509216');
+$invoice = $HC_invoice->get('175936509216');
 ```
 
 
-##### Get a list of invoices
+##### Search for invoices
 
 > See: https://api-et.hellocash.net/docs/#!/Invoice/invoice_findWrap
 
 ```php
-$invoice = app(drsdre\HelloCash\Requests\Invoice::class);
+$HC_invoice = app(drsdre\HelloCash\Requests\Invoice::class);
 
-$response = $invoice->list('175936509216');
+$invoices = $HC_invoice->search(['status' => 'PENDING']);
 ```
 
 ##### Remove an invoice
@@ -216,73 +210,54 @@ $response = $invoice->list('175936509216');
 > See: https://api-et.hellocash.net/docs/#!/Invoice/invoice_deleteById
 
 ```php
-$invoice = app(drsdre\HelloCash\Requests\Invoice::class);
+$HC_invoice = app(drsdre\HelloCash\Requests\Invoice::class);
 
-$response = $invoice->remove('175936509216');
+$response = $HC_invoice->remove('175936509216');
 ```
 
 
 ### Transfers
 
-##### Validate a transfer
-
-> See: https://api-et.hellocash.net/docs/#!/Transfer/transfer_validate
-
-```php
-$transfer = app(drsdre\HelloCash\Transfer::class);
-
-$response = $transfer->validate([]);
-```
-
-##### Create a new transfer
+##### Create or validate a new transfer
 
 > See: https://api-et.hellocash.net/docs/#!/Transfer/transfer_create
 
 ```php
-$transfer = app(drsdre\HelloCash\Transfer::class);
+$HC_transfer = app(drsdre\HelloCash\Transfer::class);
 
-$response = $transfer->create([]);
+$transfer = $HC_transfer->create(
+    ...
+);
 ```
 
-##### Replace a transfer
-
-> See: https://api-et.hellocash.net/docs/#!/Transfer/transfer_replace
-
-```php
-$transfer = app(drsdre\HelloCash\Transfer::class);
-
-$response = $transfer->replace([]);
-```
-
-##### Get a list of transfers
+##### Search for transfers
 
 > See: https://api-et.hellocash.net/docs/#!/Transfer/transfer_find
 
 ```php
-$transfer = app(drsdre\HelloCash\Transfer::class);
+$HC_transfer = app(drsdre\HelloCash\Transfer::class);
 
-$transfers = $transfer->list();
+$transfers = $HC_transfer->search(['status' => 'PENDING']);
 ```
 
-##### Get a transfer
+##### Get a transfer by ID
 
 > See: https://api-et.hellocash.net/docs/#!/Transfer/transfer_findByIdWrap
 
 ```php
-$transfer = app(drsdre\HelloCash\Transfer::class);
+$HC_transfer = app(drsdre\HelloCash\Transfer::class);
 
-// By transfer ID
-$transfers = $transfer->get('252b950e-27f2-4300-ada1-4dedd7c17904');
+$transfer = $HC_transfer->get('LUC00000248255ETH');
 ```
 
-##### Cancel a group of transfers
+##### Cancel a transfer
 
 > See: https://api-et.hellocash.net/docs/#!/Transfer/transfer_cancel
 
 ```php
-$transfer = app(drsdre\HelloCash\Transfer::class);
+$HC_transfer = app(drsdre\HelloCash\Transfer::class);
 
-$response = $transfer->cancel('175936509216');
+$response = $HC_transfer->cancel(['LUC00000248255ETH']);
 ```
 
 ##### Authorize a group of transfers
@@ -290,9 +265,9 @@ $response = $transfer->cancel('175936509216');
 > See: https://api-et.hellocash.net/docs/#!/Transfer/transfer_authorize
 
 ```php
-$transfer = app(drsdre\HelloCash\Transfer::class);
+$HC_transfer = app(drsdre\HelloCash\Transfer::class);
 
-$response = $transfer->authorize();
+$response = $HC_transfer->authorize(['LUC00000248255ETH']);
 ```
 
 ### Webhooks
