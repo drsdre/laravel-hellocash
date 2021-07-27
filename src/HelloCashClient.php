@@ -80,7 +80,7 @@ class HelloCashClient
      *
      * @return bool
      */
-    final private function curlDoesntUseNss(): bool
+    private function curlDoesntUseNss(): bool
     {
         $curl = curl_version();
 
@@ -102,7 +102,7 @@ class HelloCashClient
      * @throws HelloCashException
      * @throws InvalidArgumentException
      */
-    final private function authenticateHeader(): array
+    private function authenticateHeader(): array
     {
         return [
             'Authorization' => 'Bearer ' . $this->getBearerToken(),
@@ -117,7 +117,7 @@ class HelloCashClient
      * @return object
      * @throws HelloCashException
      */
-    final private function loadResponse(Closure $call_api): object
+    private function loadResponse(Closure $call_api): object
     {
         try {
             do {
@@ -169,7 +169,7 @@ class HelloCashClient
      * @return bool
      * @throws HelloCashException
      */
-    final private function testForErrorAndInvalidTokenRetry(): bool
+    private function testForErrorAndInvalidTokenRetry(): bool
     {
         if (isset($this->response->ErrorCode) && $this->response->ErrorCode !== 0) {
             if (
@@ -198,7 +198,7 @@ class HelloCashClient
      * @return string token
      * @throws HelloCashException
      */
-    final private function getBearerToken(): string
+    private function getBearerToken(): string
     {
         if (Cache::has(self::TOKEN_CACHE_KEY)) {
             return Cache::get(self::TOKEN_CACHE_KEY);

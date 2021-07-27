@@ -67,7 +67,7 @@ class VerifyWebhookSignature
      *
      * @throws SignatureException
      */
-    final private function verifyHeader(string $payload, string $header_hmac, string $connection_secret): void
+    private function verifyHeader(string $payload, string $header_hmac, string $connection_secret): void
     {
         if ($header_hmac !== hash_hmac('sha256', $payload, $connection_secret, false)) {
             throw new SignatureException();
